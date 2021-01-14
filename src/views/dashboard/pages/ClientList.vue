@@ -1,7 +1,6 @@
 <template>
   <v-container
     id="regular-tables"
-    fluid
     tag="section"
   >
     <base-material-card

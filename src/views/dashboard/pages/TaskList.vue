@@ -1,7 +1,6 @@
 <template>
   <v-container
     id="regular-tables"
-    fluid
     tag="section"
   >
     <base-material-card
@@ -27,13 +26,22 @@
         indeterminate
         color="green"
       ></v-progress-linear>
-      
+            
       <v-treeview
-        selectable
+        v-model="tree"
         :search="search"
-        item-disabled="locked"
-        :items="tasks"
+        :open="initiallyOpen"
+        :items="items"
+        activatable
       >
+        <template v-slot:prepend="{item}">
+          <v-icon v-if="item.level<4"
+            color="green"
+            @click="btn_click"
+          >
+            mdi-playlist-plus
+          </v-icon>
+        </template>
       </v-treeview>
 
     </base-material-card>
@@ -46,7 +54,9 @@
   export default {
     data: () => ({
       loading: true,
-      tasks: [],
+      initiallyOpen: ['public'],
+      items: [],
+      tree: [],
       search: null,
     }),
 
@@ -57,14 +67,16 @@
     },
 
     created: async function () {
-      const items = await api.getTasks()
-      this.tasks = []
-      for (const key in items) {
-        this.tasks.push(items[key])
-      }
+      this.items = await api.getTasks()
       this.loading = false
-      console.log(this.tasks)
+      console.log(this.items)
     },
+
+    methods: {
+      btn_click () {
+        console.log("btn_click", this.tree)
+      }
+    }
   }
 </script>
 
