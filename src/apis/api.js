@@ -20,6 +20,11 @@ class DataService {
         return []
     }
 
+    updateClient = async function(client) {
+        const response = await http.post("/common/clientUpdateOne", client, this.config())
+        return (response.status == 200);
+    }
+
     getTasks = async function() {
         const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())
         if (response.status == 200) {
@@ -31,20 +36,6 @@ class DataService {
             }
         }
         return []
-    }
-
-    updateTasks = async function(tasks) {
-        const postData = {
-            saveThisRecord: {
-                TaskCategory: tasks
-            }
-        }
-        const data = JSON.stringify(postData)
-        const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
-        if (response.status == 200) {
-            return true
-        }
-        return false
     }
 
     arrangeTasks = function(items, index) {
@@ -67,6 +58,20 @@ class DataService {
             tasks.push(tazk)
         }        
         return {tasks, index};
+    }
+
+    updateTasks = async function(tasks) {
+        const postData = {
+            saveThisRecord: {
+                TaskCategory: tasks
+            }
+        }
+        const data = JSON.stringify(postData)
+        const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
+        if (response.status == 200) {
+            return true
+        }
+        return false
     }
 }
 

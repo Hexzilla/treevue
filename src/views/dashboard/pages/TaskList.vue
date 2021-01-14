@@ -1,15 +1,24 @@
 <template>
-	<v-container tag="section">
-		<v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
-      <v-card
-        class="mx-2"
-        flat
-        tile
-      >
+  <v-container tag="section">
+    <v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
+      <v-card class="d-flex flex-row-reverse" flat tile>
+        <v-btn
+          color="primary"
+          dark
+          v-bind="attrs"
+          v-on="on"
+          @click="addCategory"
+        >
+          New Category
+        </v-btn>
+      </v-card>
+
+      <v-card flat tile>
         <v-text-field
           v-model="search"
           append-icon="mdi-magnify"
           label="Search"
+          class="mb-2"
           single-line
           flat
           hide-details
@@ -18,44 +27,22 @@
         ></v-text-field>
       </v-card>
 
-      <v-card
-        class="d-flex flex-row-reverse"
-        flat
-        tile
-      >
-        <v-btn
-          fab
-          dark
-          x-small
-          color="indigo"
-          @click="addCategory"
-        >
-          <v-icon dark>
-            mdi-plus
-          </v-icon>
-        </v-btn>
-      </v-card>
+      <v-progress-linear
+        v-if="loading"
+        indeterminate
+        color="green"
+      ></v-progress-linear>
 
-			<v-progress-linear
-				v-if="loading"
-				indeterminate
-				color="green"
-			></v-progress-linear>
+      <!--Add, Edit dialog-->
+      <v-dialog v-model="dialog" max-width="500px">
+        <v-card>
+          <v-card-title>
+            <span class="headline">{{ formTitle }}</span>
+          </v-card-title>
 
-			<!--Add, Edit dialog-->
-			<v-dialog v-model="dialog" max-width="500px">
-				<v-card>
-					<v-card-title>
-						<span class="headline">{{ formTitle }}</span>
-					</v-card-title>
-
-					<v-card-text>
-						<v-container>
-							<v-form
-                ref="form"
-                v-model="valid"
-                lazy-validation
-              >
+          <v-card-text>
+            <v-container>
+              <v-form ref="form" v-model="valid" lazy-validation>
                 <v-text-field
                   :counter="maxNameLength"
                   :rules="nameRules"
@@ -63,164 +50,165 @@
                   label="Name"
                   required
                 ></v-text-field>
-							</v-form>
-						</v-container>
-					</v-card-text>
+              </v-form>
+            </v-container>
+          </v-card-text>
 
-					<v-card-actions>
+          <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="close">
-              Cancel
-            </v-btn>
+            <v-btn color="blue darken-1" text @click="close"> Cancel </v-btn>
             <v-btn :disabled="!valid" color="blue darken-1" text @click="save">
               Save
             </v-btn>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-			<!-- Treeview -->
-			<v-treeview
-				v-model="tree"
-				:search="search"
-				:open="initiallyOpen"
-				:items="items"
-				activatable
-			>
-				<template v-slot:prepend="{ item }">
-					<v-icon v-if="item.level < 4" color="#FF12b0" @click="addTask(item)">
-						mdi-playlist-plus
-					</v-icon>
-				</template>
-				<template v-slot:append="{ item }">
-					<v-icon v-if="item.id != 0" color="green" @click="editTask(item)">
-						mdi-playlist-edit
-					</v-icon>
-				</template>
-			</v-treeview>
-		</v-card>
-	</v-container>
+      <!-- Treeview -->
+      <v-treeview
+        v-model="tree"
+        :search="search"
+        :open="initiallyOpen"
+        :items="items"
+        activatable
+      >
+        <template v-slot:prepend="{ item }">
+          <v-icon v-if="item.level < 4" color="green" @click="addTask(item)">
+            mdi-playlist-plus
+          </v-icon>
+        </template>
+        <template v-slot:append="{ item }">
+          <v-icon v-if="item.id != 0" color="green" @click="editTask(item)">
+            mdi-playlist-edit
+          </v-icon>
+        </template>
+      </v-treeview>
+    </v-card>
+  </v-container>
 </template>
 
 <script>
-import api from "@/apis/api.js"
+import api from "@/apis/api.js";
 
 export default {
-	data: () => ({
+  data: () => ({
     loading: true,
     uniqueTreeId: 0,
-		initiallyOpen: ["public"],
-		items: [],
-		dialog: false,
-		tree: [],
+    initiallyOpen: ["public"],
+    items: [],
+    dialog: false,
+    tree: [],
     search: null,
     maxNameLength: 60,
     actionMode: "",
-		selectedItem: null,
-		editName: "",
+    selectedItem: null,
+    editName: "",
     valid: false,
-	}),
+  }),
 
-	computed: {
-		filter() {
-			return undefined
-		},
-		formTitle() {
-      if (this.actionMode === "add_category") return "New Category"
-			return this.actionMode === "add_task" ? "New Task" : "Edit Task"
+  computed: {
+    filter() {
+      return undefined;
+    },
+    formTitle() {
+      if (this.actionMode === "add_category") return "New Category";
+      return this.actionMode === "add_task" ? "New Task" : "Edit Task";
     },
     nameRules() {
       return [
-        v => !!v || 'Name is required',
-        v => (v && v.length <= this.maxNameLength) || `Name must be less than ${this.maxNameLength} characters`,
+        (v) => !!v || "Name is required",
+        (v) =>
+          (v && v.length <= this.maxNameLength) ||
+          `Name must be less than ${this.maxNameLength} characters`,
       ];
-    }
-	},
+    },
+  },
 
-	created: async function() {
-		this.items = await api.getTasks()
-		this.loading = false
-	},
+  created: async function () {
+    this.items = await api.getTasks();
+    this.loading = false;
+  },
 
-	methods: {
+  methods: {
     addCategory() {
-      this.actionMode = "add_category"
-      this.editName= ""
-      this.openDialog()
+      this.actionMode = "add_category";
+      this.editName = "";
+      this.openDialog();
     },
 
-		addTask(item) {
-      console.log("addTask", item)
-      this.actionMode = "add_task"
-      this.editName = ""
-      this.selectedItem = item
-      this.openDialog()
-		},
+    addTask(item) {
+      console.log("addTask", item);
+      this.actionMode = "add_task";
+      this.editName = "";
+      this.selectedItem = item;
+      this.openDialog();
+    },
 
-		editTask(item) {
-      console.log("editTask", item)
+    editTask(item) {
+      console.log("editTask", item);
       this.actionMode = "edit_task";
-      this.editName = item.name
-			this.selectedItem = item
-      console.log("editTask", this.editName)
-      this.openDialog()
+      this.editName = item.name;
+      this.selectedItem = item;
+      console.log("editTask", this.editName);
+      this.openDialog();
     },
-    
+
     openDialog() {
       if (this.$refs.form) {
-        this.$refs.form.resetValidation()
+        this.$refs.form.resetValidation();
       }
-      this.valid = true
-			this.dialog = true
+      this.valid = true;
+      this.dialog = true;
     },
 
-		uniqueId() {
-      this.uniqueTreeId ++
-			return this.uniqueTreeId
+    uniqueId() {
+      this.uniqueTreeId++;
+      return this.uniqueTreeId;
     },
-    
+
     createCategory() {
-      return { 
-        id: this.uniqueId(), 
+      return {
+        id: this.uniqueId(),
         name: this.editName,
-        level: 0, 
-        children: [] 
-      }
+        level: 0,
+        children: [],
+      };
     },
 
-		createTask() {
+    createTask() {
       return {
-        id: this.uniqueId(), 
+        id: this.uniqueId(),
         name: this.editName,
-        level: this.selectedItem.level + 1, 
-        children: [] 
-      }
-		},
+        level: this.selectedItem.level + 1,
+        children: [],
+      };
+    },
 
-		async save() {
+    async save() {
       if (!this.$refs.form.validate()) {
-        return
+        return;
       }
       if (this.actionMode === "add_category") {
-        this.items.push(this.createCategory())
+        this.items.push(this.createCategory());
+      } else if (this.actionMode === "add_task") {
+        this.selectedItem.children = [
+          ...this.selectedItem.children,
+          this.createTask(),
+        ];
+      } else {
+        this.selectedItem.name = this.editName;
       }
-      else if (this.actionMode === "add_task") {
-				this.selectedItem.children = [...this.selectedItem.children, this.createTask()]
-      } 
-      else {
-        this.selectedItem.name = this.editName
-			}
-      this.close()
+      this.close();
 
-      this.loading = true
-      const updated = await api.updateTasks(this.items)
-      console.log("updated", updated)
-      this.loading = false
-		},
+      this.loading = true;
+      const updated = await api.updateTasks(this.items);
+      console.log("updated", updated);
+      this.loading = false;
+    },
 
-		close() {
-			this.dialog = false
-		},
-	},
-}
+    close() {
+      this.dialog = false;
+    },
+  },
+};
 </script>
