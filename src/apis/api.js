@@ -33,6 +33,20 @@ class DataService {
         return []
     }
 
+    updateTasks = async function(tasks) {
+        const postData = {
+            saveThisRecord: {
+                TaskCategory: tasks
+            }
+        }
+        const data = JSON.stringify(postData)
+        const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
+        if (response.status == 200) {
+            return true
+        }
+        return false
+    }
+
     arrangeTasks = function(items, index) {
         let tasks = []
         for (const key in Object.keys(items)) {

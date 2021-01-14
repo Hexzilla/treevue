@@ -1,10 +1,6 @@
 <template>
-	<v-container id="regular-tables" tag="section">
-		<v-card
-			icon="mdi-file-tree"
-			title="Task List"
-			class="px-5 py-2"
-		>
+	<v-container tag="section">
+		<v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
       <v-card
         class="mx-2"
         flat
@@ -201,7 +197,7 @@ export default {
       }
 		},
 
-		save() {
+		async save() {
       if (!this.$refs.form.validate()) {
         return
       }
@@ -215,7 +211,11 @@ export default {
         this.selectedItem.name = this.editName
 			}
       this.close()
-      console.log("items", this.items)
+
+      this.loading = true
+      const updated = await api.updateTasks(this.items)
+      console.log("updated", updated)
+      this.loading = false
 		},
 
 		close() {
