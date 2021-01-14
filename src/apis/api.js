@@ -27,7 +27,7 @@ class DataService {
             const data = response.data;
             if (data.success) {
                 let items = data.response.allCarrierRecord.TaskCategory
-                let {tasks, index} = this.arrangeTasks(items, 10000)
+                let {tasks, index} = this.arrangeTasks(items, 1)
                 return tasks
             }
         }
