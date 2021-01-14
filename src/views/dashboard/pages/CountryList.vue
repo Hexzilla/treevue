@@ -43,7 +43,7 @@
                     <v-row>
                       <v-col cols="12" sm="6" md="6">
                         <v-text-field
-                          v-model="editedItem.code"
+                          v-model="editedItem.ISOcode"
                           :counter="maxCodeLength"
                           :rules="codeRules"
                           label="Code"
@@ -99,9 +99,9 @@
           <v-icon small disabled @click="deleteItem(item)"> mdi-delete </v-icon>
         </template>
 
-        <template v-slot:item.code="props">
-          <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.code">
-            {{ props.item.code }}
+        <template v-slot:item.ISOcode="props">
+          <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.ISOcode">
+            {{ props.item.ISOcode }}
             <template v-slot:input>
               <div class="mt-4 title">Update Code</div>
               <v-text-field
@@ -157,7 +157,7 @@ export default {
     snackColor: "",
 	  snackText: "",
 	  valid: true,
-    maxCodeLength: 20,
+    maxCodeLength: 10,
     maxNameLength: 200,
     inlineEditedCode: "",
     inlineEditedName: "",
@@ -166,9 +166,9 @@ export default {
     dialogDelete: false,
     headers: [
       {
-        text: "Code",
+        text: "ISOcode",
         align: "start",
-        value: "code",
+        value: "ISOcode",
         width: "30%",
       },
       { text: "Name", value: "name" },
@@ -177,11 +177,11 @@ export default {
     clients: [],
     editedIndex: -1,
     editedItem: {
-      code: "",
+      ISOcode: "",
       name: "",
     },
     defaultItem: {
-      code: "",
+      ISOcode: "",
       name: "",
     },
   }),
@@ -224,7 +224,7 @@ export default {
   methods: {
     async initialize() {
       this.loading = true
-      this.clients = await api.getClients();
+      this.clients = await api.getCountries()
       this.loading = false;
     },
 
@@ -277,7 +277,7 @@ export default {
         this.loading = true
         {
           const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
-          const success = await api.updateClient(updatedItem) 
+          const success = await api.updateCountry(updatedItem) 
           if (success) {
             Object.assign(item, updatedItem);
           }
@@ -294,7 +294,7 @@ export default {
         {
           const updatedItem = Object.assign({}, item, {name: this.inlineEditedName})
           console.log(updatedItem)
-          const success = await api.updateClient(updatedItem) 
+          const success = await api.updateCountry(updatedItem) 
           if (success) {
             Object.assign(item, updatedItem);
           }
@@ -313,13 +313,13 @@ export default {
       {
         let success = false
         if (this.editedIndex > -1) {
-          success = await api.updateClient(this.editedItem) 
+          success = await api.updateCountry(this.editedItem) 
           if (success) {
             Object.assign(this.clients[this.editedIndex], this.editedItem);
           }
         } 
         else {
-          success = await api.addClient(this.editedItem)
+          success = await api.addCountry(this.editedItem)
           if (success) {
             this.clients.push(this.editedItem);
           }

@@ -47,6 +47,44 @@ class DataService {
         }
     }
 
+    getCountries = async function() {
+        try {
+            const response = await http.post("/common/countryFindAll", "", this.config())
+            if (response.status == 200) {
+                const data = response.data;
+                if (data.success) {
+                    return data.response.allCarrierRecord
+                }
+            }
+        }
+        catch (error) {
+            console.log(error.response.data.error)
+        }
+        return []
+    }
+
+    addCountry = async function(country) {
+        try {
+            const response = await http.post("/common/countryAddOne", country, this.config())
+            return (response.status == 200);
+        }
+        catch (error) {
+            console.log(error.response.data.error)
+            return false
+        }
+    }
+
+    updateCountry = async function(country) {
+        try {
+            const response = await http.post("/common/countryUpdateOne", country, this.config())
+            return (response.status == 200);
+        }
+        catch (error) {
+            console.log(error.response.data.error)
+            return false
+        }
+    }
+
     getTasks = async function() {
         try {
             const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())

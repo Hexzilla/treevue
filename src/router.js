@@ -24,6 +24,11 @@ export default new Router({
           component: () => import('@/views/dashboard/pages/ClientList'),
         },
         {
+          name: 'Country List',
+          path: 'pages/country',
+          component: () => import('@/views/dashboard/pages/CountryList'),
+        },
+        {
           name: 'Task List',
           path: 'pages/task',
           component: () => import('@/views/dashboard/pages/TaskList'),

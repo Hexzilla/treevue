@@ -118,6 +118,11 @@
           to: '/pages/client',
         },
         {
+          icon: 'mdi-map-marker',
+          title: 'country',
+          to: '/pages/country',
+        },
+        {
           icon: 'mdi-file-tree',
           title: 'task',
           to: '/pages/task',
