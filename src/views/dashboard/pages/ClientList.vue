@@ -19,7 +19,7 @@
               hide-details
             ></v-text-field>
             <v-spacer></v-spacer>
-			<!--Add Dialog Begin-->
+			      <!--Add Dialog Begin-->
             <v-dialog v-model="dialog" max-width="500px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -44,19 +44,19 @@
                       <v-col cols="12" sm="6" md="6">
                         <v-text-field
                           v-model="editedItem.code"
-						  :counter="maxCodeLength"
-						  :rules="codeRules"
+                          :counter="maxCodeLength"
+                          :rules="codeRules"
                           label="Code"
-						  required
+						              required
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
                         <v-text-field
                           v-model="editedItem.name"
-						  :counter="maxNameLength"
-						  :rules="nameRules"
+                          :counter="maxNameLength"
+                          :rules="nameRules"
                           label="Name"
-						  required
+						              required
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -70,8 +70,9 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-			<!--Add Dialog End-->
-			<!--Delete Dialog Begin-->
+            <!--Add Dialog End-->
+
+            <!--Delete Dialog Begin-->
             <v-dialog v-model="dialogDelete" max-width="600px">
               <v-card>
                 <v-card-title class="headline"
@@ -87,7 +88,7 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-			<!--Delete Dialog End-->
+		      	<!--Delete Dialog End-->
           </v-toolbar>
         </template>
 
@@ -99,30 +100,32 @@
         </template>
 
         <template v-slot:item.code="props">
-          <v-edit-dialog :return-value.sync="props.item.code">
+          <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.code">
             {{ props.item.code }}
             <template v-slot:input>
+              <div class="mt-4 title">Update Code</div>
               <v-text-field
-                v-model="props.item.code"
+                v-model="inlineEditedCode"
                 :rules="codeRules"
+                :counter="maxCodeLength"
                 label="Edit"
                 single-line
-                counter
+                autofocus
               ></v-text-field>
             </template>
           </v-edit-dialog>
         </template>
         <template v-slot:item.name="props">
-          <v-edit-dialog :return-value.sync="props.item.name" large>
+          <v-edit-dialog large @save="updateItemName(props.item)" @open="inlineEditedName = props.item.name">
             <div>{{ props.item.name }}</div>
             <template v-slot:input>
               <div class="mt-4 title">Update Name</div>
               <v-text-field
-                v-model="props.item.name"
+                v-model="inlineEditedName"
                 :rules="nameRules"
+                :counter="maxNameLength"
                 label="Edit"
                 single-line
-                counter
                 autofocus
               ></v-text-field>
             </template>
@@ -137,7 +140,6 @@
 
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
-
       <template v-slot:action="{ attrs }">
         <v-btn v-bind="attrs" text @click="snack = false"> Close </v-btn>
       </template>
@@ -153,10 +155,12 @@ export default {
     loading: true,
     snack: false,
     snackColor: "",
-	snackText: "",
-	valid: true,
+	  snackText: "",
+	  valid: true,
     maxCodeLength: 20,
     maxNameLength: 200,
+    inlineEditedCode: "",
+    inlineEditedName: "",
     search: "",
     dialog: false,
     dialogDelete: false,
@@ -185,23 +189,23 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Add Client" : "Edit Client";
-	},
-	codeRules() {
-		return [
-			(v) => !!v || "Code is required",
-			(v) =>
-			(v && v.length <= this.maxCodeLength) ||
-			`Code must be less than ${this.maxCodeLength} characters`,
-		];
-	},
-	nameRules() {
-		return [
-			(v) => !!v || "Name is required",
-			(v) =>
-			(v && v.length <= this.maxNameLength) ||
-			`Name must be less than ${this.maxNameLength} characters`,
-		];
-	},
+    },
+    codeRules() {
+      return [
+        (v) => !!v || "Code is required",
+        (v) =>
+        (v && v.length <= this.maxCodeLength) ||
+        `Code must be less than ${this.maxCodeLength} characters`,
+      ];
+    },
+    nameRules() {
+      return [
+        (v) => !!v || "Name is required",
+        (v) =>
+        (v && v.length <= this.maxNameLength) ||
+        `Name must be less than ${this.maxNameLength} characters`,
+      ];
+    },
   },
 
   watch: {
@@ -214,32 +218,32 @@ export default {
   },
 
   created: async function () {
-    this.clients = await api.getClients();
-    this.loading = false;
-    console.log("clients", this.clients);
+    await this.initialize()
   },
 
   methods: {
-    initialize() {
+    async initialize() {
+      this.loading = true
+      this.clients = await api.getClients();
+      this.loading = false;
     },
 
-	addItem() {
-	  this.openAddDialog()
-	},
+    addItem() {
+      this.openAddDialog()
+    },
 
     editItem(item) {
       this.editedIndex = this.clients.indexOf(item);
-	  this.editedItem = Object.assign({}, item);
-	  console.log(this.editedItem)
+      this.editedItem = Object.assign({}, item);
       this.openAddDialog()
-	},
-	
-	openAddDialog() {
-	  if (this.$refs.form) {
-        this.$refs.form.resetValidation();
-	  }
-	  this.dialog = true;
-	},
+    },
+    
+    openAddDialog() {
+      if (this.$refs.form) {
+          this.$refs.form.resetValidation();
+      }
+      this.dialog = true;
+    },
 
     deleteItem(item) {
       this.editedIndex = this.clients.indexOf(item);
@@ -268,55 +272,73 @@ export default {
       });
     },
 
-    async save() {
-	  if (!this.$refs.form.validate()) {
-        return;
-	  }	
-	  this.close();
-
-	  this.loading = true
-	  let success = false
-	  if (this.editedIndex > -1) {
-        Object.assign(this.clients[this.editedIndex], this.editedItem);
-	  	success = await api.updateClient(this.editedItem)
-	  } 
-	  else {
-		this.clients.push(this.editedItem);
-		success = await api.addClient(this.editedItem)
+    async updateItemCode(item) {
+      if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length < this.maxCodeLength) {
+        this.loading = true
+        {
+          const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
+          const success = await api.updateClient(updatedItem) 
+          if (success) {
+            Object.assign(item, updatedItem);
+          }
+          this.show_snack(success)
+        }
+        this.loading = false
       }
-	  
-	  this.loading = false
-	  this.show_snack(success)
+    },
+
+    async updateItemName(item) {
+      console.log("this.inlineEditedName", this.inlineEditedName)
+      if (this.inlineEditedName.length > 0 && this.inlineEditedName.length < this.maxCodeLength) {
+        this.loading = true
+        {
+          const updatedItem = Object.assign({}, item, {name: this.inlineEditedName})
+          console.log(updatedItem)
+          const success = await api.updateClient(updatedItem) 
+          if (success) {
+            Object.assign(item, updatedItem);
+          }
+          this.show_snack(success)
+        }
+        this.loading = false
+      }
+    },
+
+    async save() {
+      if (!this.$refs.form.validate()) {
+          return;
+      }	
+      this.close();
+      this.loading = true
+      {
+        let success = false
+        if (this.editedIndex > -1) {
+          success = await api.updateClient(this.editedItem) 
+          if (success) {
+            Object.assign(this.clients[this.editedIndex], this.editedItem);
+          }
+        } 
+        else {
+          success = await api.addClient(this.editedItem)
+          if (success) {
+            this.clients.push(this.editedItem);
+          }
+        }
+        this.show_snack(success)
+      }
+      this.loading = false
     },
 
     show_snack(success) {
-	  this.snack = true;
-	  if (success) {
-      	this.snackColor = "success"
-		this.snackText = "Data saved"
-	  }
-	  else {
-      	this.snackColor = "error";
-      	this.snackText = "Error";
-	  }
-    },
-    save_snack() {
       this.snack = true;
-      this.snackColor = "success";
-      this.snackText = "Data saved";
-    },
-    cancel_snack() {
-      this.snack = true;
-      this.snackColor = "error";
-      this.snackText = "Canceled";
-    },
-    open_snack() {
-      this.snack = true;
-      this.snackColor = "info";
-      this.snackText = "Dialog opened";
-    },
-    close_snack() {
-      console.log("Dialog closed");
+      if (success) {
+        this.snackColor = "success"
+        this.snackText = "Data saved"
+      }
+      else {
+        this.snackColor = "error";
+        this.snackText = "Error";
+      }
     },
   },
 };
