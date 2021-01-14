@@ -10,30 +10,57 @@ class DataService {
     }
 
     getClients = async function() {
-        const response = await http.post("/common/clientFindAll", "", this.config())
-        if (response.status == 200) {
-            const data = response.data;
-            if (data.success) {
-                return data.response.allCarrierRecord
+        try {
+            const response = await http.post("/common/clientFindAll", "", this.config())
+            if (response.status == 200) {
+                const data = response.data;
+                if (data.success) {
+                    return data.response.allCarrierRecord
+                }
             }
+        }
+        catch (error) {
+            console.log(error.response.data.error)
         }
         return []
     }
 
+    addClient = async function(client) {
+        try {
+            const response = await http.post("/common/clientAddOne", client, this.config())
+            return (response.status == 200);
+        }
+        catch (error) {
+            console.log(error.response.data.error)
+            return false
+        }
+    }
+
     updateClient = async function(client) {
-        const response = await http.post("/common/clientUpdateOne", client, this.config())
-        return (response.status == 200);
+        try {
+            const response = await http.post("/common/clientUpdateOne", client, this.config())
+            return (response.status == 200);
+        }
+        catch (error) {
+            console.log(error.response.data.error)
+            return false
+        }
     }
 
     getTasks = async function() {
-        const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())
-        if (response.status == 200) {
-            const data = response.data;
-            if (data.success) {
-                let items = data.response.allCarrierRecord.TaskCategory
-                let {tasks, index} = this.arrangeTasks(items, 1)
-                return tasks
+        try {
+            const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())
+            if (response.status == 200) {
+                const data = response.data;
+                if (data.success) {
+                    let items = data.response.allCarrierRecord.TaskCategory
+                    let {tasks, index} = this.arrangeTasks(items, 1)
+                    return tasks
+                }
             }
+        }
+        catch (error) {
+            console.log(error.response.data.error)
         }
         return []
     }
@@ -61,15 +88,20 @@ class DataService {
     }
 
     updateTasks = async function(tasks) {
-        const postData = {
-            saveThisRecord: {
-                TaskCategory: tasks
+        try {
+            const postData = {
+                saveThisRecord: {
+                    TaskCategory: tasks
+                }
+            }
+            const data = JSON.stringify(postData)
+            const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
+            if (response.status == 200) {
+                return true
             }
         }
-        const data = JSON.stringify(postData)
-        const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
-        if (response.status == 200) {
-            return true
+        catch (error) {
+            console.log(error.response.data.error)
         }
         return false
     }

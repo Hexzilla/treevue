@@ -95,7 +95,7 @@
           <v-icon small class="mr-2" @click="editItem(item)">
             mdi-pencil
           </v-icon>
-          <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
+          <v-icon small disabled @click="deleteItem(item)"> mdi-delete </v-icon>
         </template>
 
         <template v-slot:item.code="props">
@@ -216,7 +216,7 @@ export default {
   created: async function () {
     this.clients = await api.getClients();
     this.loading = false;
-    console.log("clients", typeof this.clients);
+    console.log("clients", this.clients);
   },
 
   methods: {
@@ -229,7 +229,8 @@ export default {
 
     editItem(item) {
       this.editedIndex = this.clients.indexOf(item);
-      this.editedItem = Object.assign({}, item);
+	  this.editedItem = Object.assign({}, item);
+	  console.log(this.editedItem)
       this.openAddDialog()
 	},
 	
@@ -267,18 +268,38 @@ export default {
       });
     },
 
-    save() {
+    async save() {
 	  if (!this.$refs.form.validate()) {
         return;
-      }	
-      if (this.editedIndex > -1) {
+	  }	
+	  this.close();
+
+	  this.loading = true
+	  let success = false
+	  if (this.editedIndex > -1) {
         Object.assign(this.clients[this.editedIndex], this.editedItem);
-      } else {
-        this.clients.push(this.editedItem);
+	  	success = await api.updateClient(this.editedItem)
+	  } 
+	  else {
+		this.clients.push(this.editedItem);
+		success = await api.addClient(this.editedItem)
       }
-      this.close();
+	  
+	  this.loading = false
+	  this.show_snack(success)
     },
 
+    show_snack(success) {
+	  this.snack = true;
+	  if (success) {
+      	this.snackColor = "success"
+		this.snackText = "Data saved"
+	  }
+	  else {
+      	this.snackColor = "error";
+      	this.snackText = "Error";
+	  }
+    },
     save_snack() {
       this.snack = true;
       this.snackColor = "success";
