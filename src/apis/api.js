@@ -10,8 +10,7 @@ class DataService {
     }
 
     getClients = async function() {
-        const response = await http.post("/clientFindAll", "", this.config())
-        console.log("!!!!!!!!!!!!!!!!!", response)
+        const response = await http.post("/common/clientFindAll", "", this.config())
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {
@@ -19,6 +18,41 @@ class DataService {
             }
         }
         return []
+    }
+
+    getTasks = async function() {
+        const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())
+        if (response.status == 200) {
+            const data = response.data;
+            if (data.success) {
+                let items = data.response.allCarrierRecord.TaskCategory
+                let {tasks, index} = this.arrangeTasks(items, 10000)
+                return tasks
+            }
+        }
+        return []
+    }
+
+    arrangeTasks = function(items, index) {
+        let tasks = []
+        for (const key in Object.keys(items)) {
+            const data = items[key]
+            let tazk = {
+                "id": index,
+                "name": data.name,
+                "index": data.id,
+                "level": data.level,
+                "children": []
+            }
+            index++
+            if (data.hasOwnProperty("children")) {
+                const children = this.arrangeTasks(data.children, index)
+                tazk["children"] = children.tasks
+                index = children.index
+            }
+            tasks.push(tazk)
+        }        
+        return {tasks, index};
     }
 }
 

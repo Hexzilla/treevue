@@ -76,6 +76,7 @@
       <div />
     </v-list>
 
+<!--
     <template v-slot:append>
       <base-item
         :item="{
@@ -84,7 +85,7 @@
           to: '/upgrade',
         }"
       />
-    </template>
+    </template> -->
   </v-navigation-drawer>
 </template>
 
@@ -115,6 +116,11 @@
           icon: 'mdi-account',
           title: 'client',
           to: '/pages/client',
+        },
+        {
+          icon: 'mdi-file-tree',
+          title: 'task',
+          to: '/pages/task',
         },
         {
           icon: 'mdi-account',

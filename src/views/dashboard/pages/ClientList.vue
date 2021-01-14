@@ -5,17 +5,17 @@
     tag="section"
   >
     <base-material-card
-      icon="mdi-clipboard-text"
+      icon="mdi-account"
       title="Client List"
       class="px-5 py-3"
     >
       <v-data-table
         :headers="headers"
-        :items="desserts"
+        :items="clients"
         :search="search"
         :loading="loading"
         loading-text="Loading... Please wait"
-        sort-by="code"
+        sort-by="id"
         class="elevation-1"
       >
         <template v-slot:top>
@@ -225,7 +225,7 @@
         { text: 'Name', value: 'name', },
         { text: 'Actions', align: 'right', value: 'actions', sortable: false },
       ],
-      desserts: [],
+      clients: [],
       editedIndex: -1,
       editedItem: {
         code: '',
@@ -239,7 +239,7 @@
 
     computed: {
       formTitle () {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+        return this.editedIndex === -1 ? 'New Client' : 'Edit Client'
       },
     },
 
@@ -253,13 +253,14 @@
     },
 
     created: async function () {
-      this.desserts = await api.getClients()
+      this.clients = await api.getClients()
       this.loading = false
+      console.log("clients", typeof(this.clients))
     },
 
     methods: {
       initialize () {
-        /*this.desserts = [
+        /*this.clients = [
           {
             code: 'AN1000C',
             name: 'Android',
@@ -328,19 +329,19 @@
       },
 
       editItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
+        this.editedIndex = this.clients.indexOf(item)
         this.editedItem = Object.assign({}, item)
         this.dialog = true
       },
 
       deleteItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
+        this.editedIndex = this.clients.indexOf(item)
         this.editedItem = Object.assign({}, item)
         this.dialogDelete = true
       },
 
       deleteItemConfirm () {
-        this.desserts.splice(this.editedIndex, 1)
+        this.clients.splice(this.editedIndex, 1)
         this.closeDelete()
       },
 
@@ -362,9 +363,9 @@
 
       save () {
         if (this.editedIndex > -1) {
-          Object.assign(this.desserts[this.editedIndex], this.editedItem)
+          Object.assign(this.clients[this.editedIndex], this.editedItem)
         } else {
-          this.desserts.push(this.editedItem)
+          this.clients.push(this.editedItem)
         }
         this.close()
       },
