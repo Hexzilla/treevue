@@ -22,6 +22,7 @@ class DataService {
 
     getTasks = async function() {
         const response = await http.post("/taskCat/findAllTaskAndSubTasksF2", "", this.config())
+        return []
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {
