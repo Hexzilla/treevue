@@ -29,11 +29,7 @@
           md="auto"
         >
           <div class="body-1 font-weight-light pt-6 pt-md-0 text-center">
-            &copy; 2019, made with
-            <v-icon size="18">
-              mdi-heart
-            </v-icon>
-            by <a href="https://www.creative-tim.com">Creative Tim</a> for a better web.
+            &copy; 2021
           </div>
         </v-col>
       </v-row>
@@ -49,7 +45,7 @@
       links: [
         {
           href: '#',
-          text: 'Creative Tim',
+          text: 'Your Company',
         },
         {
           href: '#',

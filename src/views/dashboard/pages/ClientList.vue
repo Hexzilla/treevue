@@ -42,54 +42,16 @@
                 <v-card-text>
                   <v-container>
                     <v-row>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        md="4"
-                      >
+                      <v-col cols="12" sm="6" md="6">
+                        <v-text-field
+                          v-model="editedItem.code"
+                          label="Code"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
                         <v-text-field
                           v-model="editedItem.name"
-                          label="Dessert name"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model="editedItem.calories"
-                          label="Calories"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model="editedItem.fat"
-                          label="Fat (g)"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model="editedItem.carbs"
-                          label="Carbs (g)"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model="editedItem.protein"
-                          label="Protein (g)"
+                          label="Name"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -241,32 +203,23 @@
       dialogDelete: false,
       headers: [
         {
-          text: 'Dessert (100g serving)',
+          text: 'Code',
           align: 'start',
-          sortable: false,
           value: 'name',
+          width: "30%",
         },
-        { text: 'Calories', value: 'calories' },
-        { text: 'Fat (g)', value: 'fat' },
-        { text: 'Carbs (g)', value: 'carbs' },
-        { text: 'Protein (g)', value: 'protein' },
-        { text: 'Actions', value: 'actions', sortable: false },
+        { text: 'Name', value: 'code', },
+        { text: 'Actions', align: 'right', value: 'actions', sortable: false },
       ],
       desserts: [],
       editedIndex: -1,
       editedItem: {
+        code: '',
         name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0,
       },
       defaultItem: {
+        code: '',
         name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0,
       },
     }),
 
@@ -293,74 +246,68 @@
       initialize () {
         this.desserts = [
           {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
+            code: 'AN1000C',
+            name: 'Android',
           },
           {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
+            code: 'LA2000A',
+            name: 'Laravel',
           },
           {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
+            code: 'CI3030B',
+            name: 'Codeigniter',
           },
           {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
+            code: 'BN1000C',
+            name: 'Unity3D',
           },
           {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
+            code: 'CJ2033Z',
+            name: 'Java',
           },
           {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
+            code: 'JS2033K',
+            name: 'Javascript',
           },
           {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
+            code: 'OS5000C',
+            name: 'IOS',
           },
           {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
+            code: 'DC40005',
+            name: 'Docker',
           },
           {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
+            code: 'GT20001',
+            name: 'Github',
           },
           {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
+            code: 'AM30001',
+            name: 'Amazon',
+          },
+          {
+            code: 'SL44322',
+            name: 'Slim',
+          },
+          {
+            code: 'WP11120',
+            name: 'Wordpress',
+          },
+          {
+            code: 'DP5000C',
+            name: 'Drupal',
+          },
+          {
+            code: 'AN1100C',
+            name: 'Joomla',
+          },
+          {
+            code: 'ASP3332',
+            name: 'ASP.NET',
+          },
+          {
+            code: 'PHP3000',
+            name: 'Yii',
           },
         ]
       },
