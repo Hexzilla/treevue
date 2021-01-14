@@ -12,12 +12,22 @@
       <v-data-table
         :headers="headers"
         :items="desserts"
-        sort-by="calories"
+        :search="search"
+        :loading="loading"
+        loading-text="Loading... Please wait"
+        sort-by="code"
         class="elevation-1"
       >
         <template v-slot:top>
-          <v-toolbar flat>      
-            <v-toolbar-title></v-toolbar-title>
+          <v-toolbar flat>
+            <v-spacer></v-spacer>
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
             <v-spacer></v-spacer>
             <v-dialog
               v-model="dialog"
@@ -114,19 +124,19 @@
           </v-icon>
         </template>
 
-        <template v-slot:item.name="props">
+        <template v-slot:item.code="props">
           <v-edit-dialog
-            :return-value.sync="props.item.name"
+            :return-value.sync="props.item.code"
             @save="save_snack"
             @cancel="cancel_snack"
             @open="open_snack"
             @close="close_snack"
           >
-            {{ props.item.name }}
+            {{ props.item.code }}
             <template v-slot:input>
               <v-text-field
-                v-model="props.item.name"
-                :rules="[max25chars]"
+                v-model="props.item.code"
+                :rules="[maxCodeLength]"
                 label="Edit"
                 single-line
                 counter
@@ -134,24 +144,23 @@
             </template>
           </v-edit-dialog>
         </template>
-        <template v-slot:item.iron="props">
+        <template v-slot:item.name="props">
           <v-edit-dialog
-            :return-value.sync="props.item.iron"
+            :return-value.sync="props.item.name"
             large
-            persistent
             @save="save_snack"
             @cancel="cancel_snack"
             @open="open_snack"
             @close="close_snack"
           >
-            <div>{{ props.item.iron }}</div>
+            <div>{{ props.item.name }}</div>
             <template v-slot:input>
               <div class="mt-4 title">
-                Update Iron
+                Update Name
               </div>
               <v-text-field
-                v-model="props.item.iron"
-                :rules="[max25chars]"
+                v-model="props.item.name"
+                :rules="[maxNameLength]"
                 label="Edit"
                 single-line
                 counter
@@ -193,22 +202,27 @@
 </template>
 
 <script>
+  import api from "@/apis/api.js";
+
   export default {
     data: () => ({
+      loading: true,
       snack: false,
       snackColor: '',
       snackText: '',
-      max25chars: v => v.length <= 25 || 'Input too long!',
+      maxCodeLength: v => v.length <= 20 || 'Input too long!',
+      maxNameLength: v => v.length <= 200 || 'Input too long!',
+      search: '',
       dialog: false,
       dialogDelete: false,
       headers: [
         {
           text: 'Code',
           align: 'start',
-          value: 'name',
+          value: 'code',
           width: "30%",
         },
-        { text: 'Name', value: 'code', },
+        { text: 'Name', value: 'name', },
         { text: 'Actions', align: 'right', value: 'actions', sortable: false },
       ],
       desserts: [],
@@ -238,13 +252,14 @@
       },
     },
 
-    created () {
-      this.initialize()
+    created: async function () {
+      this.desserts = await api.getClients()
+      this.loading = false
     },
 
     methods: {
       initialize () {
-        this.desserts = [
+        /*this.desserts = [
           {
             code: 'AN1000C',
             name: 'Android',
@@ -309,7 +324,7 @@
             code: 'PHP3000',
             name: 'Yii',
           },
-        ]
+        ]*/
       },
 
       editItem (item) {
