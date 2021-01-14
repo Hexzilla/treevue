@@ -63,7 +63,7 @@
                 <v-text-field
                   :counter="maxNameLength"
                   :rules="nameRules"
-                  v-model="editedItem.name"
+                  v-model="editName"
                   label="Name"
                   required
                 ></v-text-field>
@@ -71,13 +71,14 @@
 						</v-container>
 					</v-card-text>
 
-					<v-card-actions class="d-flex flex-row-reverse">
-						<v-btn color="blue darken-1" text @click="close">
-							Cancel
-						</v-btn>
-						<v-btn :disabled="!valid" color="blue darken-1" text @click="save">
-							Save
-						</v-btn>
+					<v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue darken-1" text @click="close">
+              Cancel
+            </v-btn>
+            <v-btn :disabled="!valid" color="blue darken-1" text @click="save">
+              Save
+            </v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
@@ -96,7 +97,7 @@
 					</v-icon>
 				</template>
 				<template v-slot:append="{ item }">
-					<v-icon v-if="item.id != 0" color="green" @click="editTask">
+					<v-icon v-if="item.id != 0" color="green" @click="editTask(item)">
 						mdi-playlist-edit
 					</v-icon>
 				</template>
@@ -110,18 +111,17 @@ import api from "@/apis/api.js"
 
 export default {
 	data: () => ({
-		loading: true,
+    loading: true,
+    uniqueTreeId: 0,
 		initiallyOpen: ["public"],
 		items: [],
 		dialog: false,
 		tree: [],
     search: null,
     maxNameLength: 60,
-    actionMode: 0,
-		editedIndex: -1,
-		editedItem: {
-			name: "",
-    },
+    actionMode: "",
+		selectedItem: null,
+		editName: "",
     valid: false,
 	}),
 
@@ -130,8 +130,8 @@ export default {
 			return undefined
 		},
 		formTitle() {
-      if (this.actionMode === 0) return "New Category"
-			return this.actionMode === 1 ? "New Task" : "Edit Task"
+      if (this.actionMode === "add_category") return "New Category"
+			return this.actionMode === "add_task" ? "New Task" : "Edit Task"
     },
     nameRules() {
       return [
@@ -148,59 +148,74 @@ export default {
 
 	methods: {
     addCategory() {
-      this.actionMode = 0;
-      this.editedItem = {name: ''}
+      this.actionMode = "add_category"
+      this.editName= ""
       this.openDialog()
     },
 
 		addTask(item) {
-      this.actionMode = 1;
-			this.editedItem = Object.assign({}, item, { name: "" })
-			this.openDialog()
+      console.log("addTask", item)
+      this.actionMode = "add_task"
+      this.editName = ""
+      this.selectedItem = item
+      this.openDialog()
 		},
 
 		editTask(item) {
-      this.actionMode = 2;
-			this.editedIndex = this.clients.indexOf(item)
-      this.editedItem = Object.assign({}, item)
+      console.log("editTask", item)
+      this.actionMode = "edit_task";
+      this.editName = item.name
+			this.selectedItem = item
+      console.log("editTask", this.editName)
       this.openDialog()
     },
     
     openDialog() {
       if (this.$refs.form) {
-        this.$refs.form.reset()
+        this.$refs.form.resetValidation()
       }
       this.valid = true
 			this.dialog = true
     },
 
 		uniqueId() {
-			return this.items.length > 0
-				? this.items[this.items.length - 1].id + 1 : 1
+      this.uniqueTreeId ++
+			return this.uniqueTreeId
     },
     
     createCategory() {
-      return Object.assign({}, this.editedItem, { id: this.uniqueId(), level: 0 })
+      return { 
+        id: this.uniqueId(), 
+        name: this.editName,
+        level: 0, 
+        children: [] 
+      }
     },
 
 		createTask() {
-			return Object.assign({}, this.editedItem, { id: this.uniqueId() })
+      return {
+        id: this.uniqueId(), 
+        name: this.editName,
+        level: this.selectedItem.level + 1, 
+        children: [] 
+      }
 		},
 
 		save() {
       if (!this.$refs.form.validate()) {
         return
       }
-      if (this.actionMode === 0) {
+      if (this.actionMode === "add_category") {
         this.items.push(this.createCategory())
       }
-      else if (this.actionMode === 1) {
-				Object.assign(this.items[this.editedIndex], this.editedItem)
+      else if (this.actionMode === "add_task") {
+				this.selectedItem.children = [...this.selectedItem.children, this.createTask()]
       } 
       else {
-				this.items.push(this.createTask())
+        this.selectedItem.name = this.editName
 			}
-			this.close()
+      this.close()
+      console.log("items", this.items)
 		},
 
 		close() {
