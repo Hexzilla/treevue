@@ -274,7 +274,8 @@ export default {
     },
 
     async updateItemCode(item) {
-      if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length < this.maxCodeLength) {
+      console.log("updateItemCode", this.inlineEditedCode)
+      if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length <= this.maxCodeLength) {
         this.loading = true
         {
           const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
@@ -289,8 +290,8 @@ export default {
     },
 
     async updateItemName(item) {
-      console.log("this.inlineEditedName", this.inlineEditedName)
-      if (this.inlineEditedName.length > 0 && this.inlineEditedName.length < this.maxCodeLength) {
+      console.log("updateItemName", this.inlineEditedName)
+      if (this.inlineEditedName.length > 0 && this.inlineEditedName.length <= this.maxNameLength) {
         this.loading = true
         {
           const updatedItem = Object.assign({}, item, {name: this.inlineEditedName})

@@ -5,7 +5,7 @@
     v-on="$listeners"
   >
     <template v-slot:heading>
-      <chartist
+      <!-- <chartist
         :data="data"
         :event-handlers="eventHandlers"
         :options="options"
@@ -13,7 +13,7 @@
         :responsive-options="responsiveOptions"
         :type="type"
         style="max-height: 150px;"
-      />
+      /> -->
     </template>
 
     <slot

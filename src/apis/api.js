@@ -30,7 +30,7 @@ class DataService {
             const response = await http.post("/common/clientAddOne", client, this.config())
             if (response.status == 200) {
                 const data = response.data;
-                console.log("AddClient", data.response)
+                console.log("api.AddClient", data.response)
                 if (data.success) {
                     return data.response
                 }
@@ -75,7 +75,7 @@ class DataService {
             const response = await http.post("/common/countryAddOne", country, this.config())
             if (response.status == 200) {
                 const data = response.data;
-                console.log("addCountry", data.response)
+                console.log("api.addCountry", data.response)
                 if (data.success) {
                     return data.response
                 }
@@ -120,13 +120,17 @@ class DataService {
         let tasks = []
         for (const key in Object.keys(items)) {
             const data = items[key]
+            data.userAction = "nochange"
+
             let tazk = Object.assign({}, data, { ikey: index, children: [] })
             index++
+            
             if (data.hasOwnProperty("children")) {
                 const ret = this.arrangeTasks(data.children, index)
                 tazk["children"] = ret.tasks
                 index = ret.index
             }
+
             tasks.push(tazk)
         }        
         return {tasks, index};
@@ -140,6 +144,7 @@ class DataService {
                 }
             }
             const data = JSON.stringify(postData)
+            //console.log(data)
             const response = await http.post("/taskCat/updateAllTaskAndSubTasksF2", data, this.config())
             if (response.status == 200) {
                 return true

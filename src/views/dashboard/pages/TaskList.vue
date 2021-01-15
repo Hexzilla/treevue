@@ -195,6 +195,31 @@ export default {
       return this.uniqueTreeId;
     },
 
+    setItemUserActionState(_items, _userAction) {
+      for (const i in _items) {
+        const data = _items[i]
+        data.userAction = _userAction
+        if (data.hasOwnProperty("children")) {
+          this.setItemUserActionState(data.children, _userAction)
+        }
+      }
+    },
+
+    getChangeState(_items) {
+      for (const i in _items) {
+        const data = _items[i]
+        if (data.userAction != "nochange") {
+          return true
+        }
+        if (data.hasOwnProperty("children")) {
+          if (this.getChangeState(data.children)) {
+            return true;
+          }
+        }
+      }
+      return false
+    },
+
     createCategory() {
       return {
         id: this.nextId(this.items),
@@ -202,27 +227,40 @@ export default {
         name: this.editName,
         level: 0,
         dataClass: 'Category',
+        userAction: 'newData',
         children: [],
       };
     },
 
     createTask() {
+      //this.selectedItem.userAction = "modified"
       const level = this.selectedItem.level + 1
-      return {
+      let tazk = {
         id: this.nextId(this.selectedItem.children),
         ikey: this.uniqueId(),
         name: this.editName,
         level: level,
         activeFlag: 1,
         dataClass: 'Task-Level-' + level,
+        userAction: 'newData',
         children: [],
       };
+      if (level == 1) {
+        tazk["roleid"] = 10
+      }
+      return tazk
     },
 
     async saveAll() {
+      if (this.getChangeState(this.items) == false) {
+        return
+      }
       this.loading = true     
-      const updated = await api.updateTasks(this.items);
-      console.log("saveAll", updated);
+      const saved = await api.updateTasks(this.items);
+      if (saved) {
+        this.setItemUserActionState(this.items, "nochange")
+      }
+      console.log("saveAll", saved);
       this.loading = false
     },
 
@@ -243,7 +281,9 @@ export default {
         this.selectedItem.children = [...this.selectedItem.children, tazk];
       } 
       else {
+        this.selectedItem.userAction = "modified"
         this.selectedItem.name = this.editName;
+        console.log("save.edit.tazk", this.selectedItem)
       }
     },
 
