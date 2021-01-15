@@ -20,7 +20,7 @@ class DataService {
             }
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
         }
         return []
     }
@@ -28,12 +28,19 @@ class DataService {
     addClient = async function(client) {
         try {
             const response = await http.post("/common/clientAddOne", client, this.config())
-            return (response.status == 200);
+            if (response.status == 200) {
+                const data = response.data;
+                console.log("AddClient", data.response)
+                if (data.success) {
+                    return data.response
+                }
+            }
         }
         catch (error) {
-            console.log(error.response.data.error)
-            return false
+            console.log(error)
+            return null
         }
+        return null
     }
 
     updateClient = async function(client) {
@@ -42,7 +49,7 @@ class DataService {
             return (response.status == 200);
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
             return false
         }
     }
@@ -58,7 +65,7 @@ class DataService {
             }
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
         }
         return []
     }
@@ -66,10 +73,16 @@ class DataService {
     addCountry = async function(country) {
         try {
             const response = await http.post("/common/countryAddOne", country, this.config())
-            return (response.status == 200);
+            if (response.status == 200) {
+                const data = response.data;
+                console.log("addCountry", data.response)
+                if (data.success) {
+                    return data.response
+                }
+            }
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
             return false
         }
     }
@@ -80,7 +93,7 @@ class DataService {
             return (response.status == 200);
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
             return false
         }
     }
@@ -98,7 +111,7 @@ class DataService {
             }
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
         }
         return []
     }
@@ -133,13 +146,13 @@ class DataService {
                 }
             }
             const data = JSON.stringify(postData)
-            const response = await http.post("/taskCat/updateAllTaskAndSubTasks", data, this.config())
+            const response = await http.post("/taskCat/updateAllTaskAndSubTasksF2", data, this.config())
             if (response.status == 200) {
                 return true
             }
         }
         catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
         }
         return false
     }

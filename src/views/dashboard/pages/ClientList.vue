@@ -10,29 +10,29 @@
         sort-by="id"
       >
         <template v-slot:top>
-          <v-toolbar flat class="px-0 py-0">
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-              hide-details
-            ></v-text-field>
-            <v-spacer></v-spacer>
+          <v-container>
+            <div class="d-flex flex-row-reverse" flat tile>
+              <v-btn
+                color="primary"
+                dark
+                class="mb-2"
+                @click="addItem"
+              >
+                Add Client
+              </v-btn>
+            </div>
+            <div flat tile>
+              <v-text-field
+                v-model="search"
+                append-icon="mdi-magnify"
+                label="Search"
+                single-line
+                hide-details
+              ></v-text-field>
+            </div>
+            
 			      <!--Add Dialog Begin-->
             <v-dialog v-model="dialog" max-width="500px">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="mb-2"
-                  v-bind="attrs"
-                  v-on="on"
-				          @click="addItem"
-                >
-                  Add Client
-                </v-btn>
-              </template>
               <v-card>
                 <v-card-title>
                   <span class="headline">{{ formTitle }}</span>
@@ -89,7 +89,7 @@
               </v-card>
             </v-dialog>
 		      	<!--Delete Dialog End-->
-          </v-toolbar>
+          </v-container>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -133,7 +133,7 @@
         </template>
 
         <template v-slot:no-data>
-          <v-btn color="primary" @click="initialize"> Reset </v-btn>
+          <v-btn color="primary" small outlined @click="initialize"> Reset </v-btn>
         </template>
       </v-data-table>
     </v-card>
@@ -170,6 +170,7 @@ export default {
         align: "start",
         value: "code",
         width: "30%",
+        color: "primary--text",
       },
       { text: "Name", value: "name" },
       { text: "Actions", align: "right", value: "actions", sortable: false },
@@ -308,20 +309,25 @@ export default {
       if (!this.$refs.form.validate()) {
           return;
       }	
+
+      const selectedIndex = this.editedIndex
+      const item = Object.assign({}, this.editedItem)
       this.close();
+
       this.loading = true
       {
         let success = false
-        if (this.editedIndex > -1) {
-          success = await api.updateClient(this.editedItem) 
+        if (selectedIndex > -1) {
+          success = await api.updateClient(item) 
           if (success) {
-            Object.assign(this.clients[this.editedIndex], this.editedItem);
+            Object.assign(this.clients[selectedIndex], item);
           }
         } 
         else {
-          success = await api.addClient(this.editedItem)
-          if (success) {
-            this.clients.push(this.editedItem);
+          const addedItem = await api.addClient(item)
+          if (addedItem) {
+            success = true
+            this.clients.push(addedItem);
           }
         }
         this.show_snack(success)

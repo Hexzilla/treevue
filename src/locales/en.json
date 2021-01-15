@@ -1,5 +1,5 @@
 {
-  "avatar": "Project Management",
+  "avatar": "Project Manager",
   "buttons": "Buttons",
   "calendar": "Calendar",
   "charts": "Charts",
@@ -42,6 +42,9 @@
   "client": "Client",
   "country": "Country",
   "task": "Task",
+  "project": "Project",
+  "designation": "Designation",
+  "role": "Role",
   "vforms": "Validation Forms",
   "widgets": "Widgets",
   "wizard": "Wizard"

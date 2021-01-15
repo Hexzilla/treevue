@@ -29,7 +29,7 @@
           md="auto"
         >
           <div class="body-1 font-weight-light pt-6 pt-md-0 text-center">
-            &copy; 2021
+            &copy; 2021 Project Manager
           </div>
         </v-col>
       </v-row>

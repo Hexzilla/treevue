@@ -8,7 +8,7 @@
     :src="barImage"
     mobile-break-point="960"
     app
-    width="260"
+    width="280"
     v-bind="$attrs"
   >
     <template v-slot:img="props">
@@ -27,12 +27,10 @@
       <v-list-item>
         <v-list-item-avatar
           class="align-self-center"
-          color="white"
-          contain
+          color="dark"
         >
           <v-img
-            src="https://demos.creative-tim.com/vuetify-material-dashboard/favicon.ico"
-            max-height="30"
+            src="/favicon.png"
           />
         </v-list-item-avatar>
 
@@ -123,40 +121,50 @@
           to: '/pages/country',
         },
         {
+          icon: 'mdi-order-bool-ascending',
+          title: 'designation',
+          to: '/pages/designation',
+        },
+        {
+          icon: 'mdi-orbit',
+          title: 'role',
+          to: '/pages/role',
+        },
+        {
           icon: 'mdi-file-tree',
           title: 'task',
           to: '/pages/task',
         },
         {
-          icon: 'mdi-account',
-          title: 'user',
-          to: '/pages/user',
+          icon: 'mdi-semantic-web',
+          title: 'project',
+          to: '/pages/project',
         },
-        {
-          title: 'rtables',
-          icon: 'mdi-clipboard-outline',
-          to: '/tables/regular-tables',
-        },
-        {
-          title: 'typography',
-          icon: 'mdi-format-font',
-          to: '/components/typography',
-        },
-        {
-          title: 'icons',
-          icon: 'mdi-chart-bubble',
-          to: '/components/icons',
-        },
-        {
-          title: 'google',
-          icon: 'mdi-map-marker',
-          to: '/maps/google-maps',
-        },
-        {
-          title: 'notifications',
-          icon: 'mdi-bell',
-          to: '/components/notifications',
-        },
+        // {
+        //   title: 'rtables',
+        //   icon: 'mdi-clipboard-outline',
+        //   to: '/tables/regular-tables',
+        // },
+        // {
+        //   title: 'typography',
+        //   icon: 'mdi-format-font',
+        //   to: '/components/typography',
+        // },
+        // {
+        //   title: 'icons',
+        //   icon: 'mdi-chart-bubble',
+        //   to: '/components/icons',
+        // },
+        // {
+        //   title: 'google',
+        //   icon: 'mdi-map-marker',
+        //   to: '/maps/google-maps',
+        // },
+        // {
+        //   title: 'notifications',
+        //   icon: 'mdi-bell',
+        //   to: '/components/notifications',
+        // },
       ],
     }),
 
