@@ -150,7 +150,7 @@
 </template>
 
 <script>
-import api from "@/apis/api.js";
+import api from "@/apis/country.js";
 
 export default {
   data: () => ({
@@ -226,7 +226,7 @@ export default {
   methods: {
     async initialize() {
       this.loading = true
-      this.clients = await api.getCountries()
+      this.clients = await api.findAll()
       this.loading = false;
     },
 
@@ -280,7 +280,7 @@ export default {
         this.loading = true
         {
           const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
-          const success = await api.updateCountry(updatedItem) 
+          const success = await api.update(updatedItem) 
           if (success) {
             Object.assign(item, updatedItem);
           }
@@ -297,7 +297,7 @@ export default {
         {
           const updatedItem = Object.assign({}, item, {name: this.inlineEditedName})
           console.log(updatedItem)
-          const success = await api.updateCountry(updatedItem) 
+          const success = await api.update(updatedItem) 
           if (success) {
             Object.assign(item, updatedItem);
           }
@@ -320,13 +320,13 @@ export default {
       {
         let success = false
         if (selectedIndex > -1) {
-          success = await api.updateCountry(item) 
+          success = await api.update(item) 
           if (success) {
             Object.assign(this.clients[selectedIndex], item);
           }
         } 
         else {
-          const addedItem = await api.addCountry(item)
+          const addedItem = await api.add(item)
           if (addedItem) {
             success = true
             this.clients.push(addedItem);

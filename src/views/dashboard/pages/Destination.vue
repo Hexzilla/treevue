@@ -1,6 +1,6 @@
 <template>
   <v-container id="regular-tables" tag="section">
-    <v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
+    <v-card icon="mdi-file-tree" title="Destination" class="px-5 py-2">
       <v-data-table
         :headers="headers"
         :items="clients"
@@ -18,7 +18,7 @@
                 class="mb-2"
                 @click="addItem"
               >
-                Add Client
+                Add New
               </v-btn>
             </div>
             <div flat tile>
@@ -41,7 +41,7 @@
                 <v-card-text>
                   <v-form ref="form" v-model="valid" lazy-validation>
                     <v-row>
-                      <v-col cols="12" sm="6" md="6">
+                      <v-col cols="12" sm="12" md="4">
                         <v-text-field
                           v-model="editedItem.code"
                           :counter="maxCodeLength"
@@ -51,7 +51,7 @@
                           required
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="12" sm="6" md="6">
+                      <v-col cols="12" sm="12" md="8">
                         <v-text-field
                           v-model="editedItem.name"
                           :counter="maxNameLength"
@@ -150,7 +150,7 @@
 </template>
 
 <script>
-import api from "@/apis/client.js";
+import api from "@/apis/destination.js";
 
 export default {
   data: () => ({
@@ -191,7 +191,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Add Client" : "Edit Client";
+      return this.editedIndex === -1 ? "Add Destination" : "Edit Destination";
     },
     codeRules() {
       return [

@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import api from "@/apis/api.js";
+import api from "@/apis/task.js";
 
 export default {
   data: () => ({
@@ -135,7 +135,7 @@ export default {
   },
 
   created: async function () {
-    this.items = await api.getTasks();
+    this.items = await api.findAll();
     this.uniqueTreeId = this.setUniqueId(this.items)
     console.log("uniqueTreeId:", this.uniqueTreeId, this.items)
     this.loading = false;
@@ -256,7 +256,7 @@ export default {
         return
       }
       this.loading = true     
-      const saved = await api.updateTasks(this.items);
+      const saved = await api.update(this.items);
       if (saved) {
         this.setItemUserActionState(this.items, "nochange")
       }
