@@ -18,7 +18,7 @@
                 class="mb-2"
                 @click="addItem"
               >
-                Add Client
+                New
               </v-btn>
             </div>
             <div flat tile>

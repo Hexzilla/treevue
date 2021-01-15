@@ -1,6 +1,6 @@
 <template>
   <v-container id="regular-tables" tag="section">
-    <v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
+    <v-card icon="mdi-file-tree" title="Role List" class="px-5 py-2">
       <v-data-table
         :headers="headers"
         :items="clients"
@@ -41,17 +41,7 @@
                 <v-card-text>
                   <v-form ref="form" v-model="valid" lazy-validation>
                     <v-row>
-                      <v-col cols="12" sm="6" md="6">
-                        <v-text-field
-                          v-model="editedItem.ISOcode"
-                          :counter="maxCodeLength"
-                          :rules="codeRules"
-                          label="Code"
-                          class="input-uppercase"
-                          required
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
+                      <v-col cols="12" sm="12" md="12">
                         <v-text-field
                           v-model="editedItem.name"
                           :counter="maxNameLength"
@@ -100,23 +90,6 @@
           <v-icon small disabled @click="deleteItem(item)"> mdi-delete </v-icon>
         </template>
 
-        <template v-slot:item.ISOcode="props">
-          <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.ISOcode">
-            {{ props.item.ISOcode.toUpperCase() }}
-            <template v-slot:input>
-              <div class="mt-4 title">Update Code</div>
-              <v-text-field
-                v-model="inlineEditedCode"
-                :rules="codeRules"
-                :counter="maxCodeLength"
-                label="Edit"
-                class="input-uppercase"
-                single-line
-                autofocus
-              ></v-text-field>
-            </template>
-          </v-edit-dialog>
-        </template>
         <template v-slot:item.name="props">
           <v-edit-dialog large @save="updateItemName(props.item)" @open="inlineEditedName = props.item.name">
             <div>{{ props.item.name }}</div>
@@ -150,7 +123,7 @@
 </template>
 
 <script>
-import api from "@/apis/country.js";
+import api from "@/apis/role.js";
 
 export default {
   data: () => ({
@@ -159,46 +132,32 @@ export default {
     snackColor: "",
 	  snackText: "",
 	  valid: true,
-    maxCodeLength: 10,
-    maxNameLength: 200,
-    inlineEditedCode: "",
+    maxNameLength: 100,
     inlineEditedName: "",
     search: "",
     dialog: false,
     dialogDelete: false,
     headers: [
       {
-        text: "ISOcode",
+        text: "Name",
         align: "start",
-        value: "ISOcode",
-        width: "30%",
+        value: "name",
       },
-      { text: "Name", value: "name" },
       { text: "Actions", align: "right", value: "actions", sortable: false },
     ],
     clients: [],
     editedIndex: -1,
     editedItem: {
-      ISOcode: "",
       name: "",
     },
     defaultItem: {
-      ISOcode: "",
       name: "",
     },
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Add Country" : "Edit Country";
-    },
-    codeRules() {
-      return [
-        (v) => !!v || "Code is required",
-        (v) =>
-        (v && v.length <= this.maxCodeLength) ||
-        `Code must be less than ${this.maxCodeLength} characters`,
-      ];
+      return this.editedIndex === -1 ? "Add Client" : "Edit Client";
     },
     nameRules() {
       return [
@@ -226,7 +185,7 @@ export default {
   methods: {
     async initialize() {
       this.loading = true
-      this.clients = await api.findAll()
+      this.clients = await api.findAll();
       this.loading = false;
     },
 
@@ -274,25 +233,9 @@ export default {
       });
     },
 
-    async updateItemCode(item) {
-      console.log("updateItemCode", this.inlineEditedCode)
-      if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length < this.maxCodeLength) {
-        this.loading = true
-        {
-          const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
-          const success = await api.update(updatedItem) 
-          if (success) {
-            Object.assign(item, updatedItem);
-          }
-          this.show_snack(success)
-        }
-        this.loading = false
-      }
-    },
-
     async updateItemName(item) {
       console.log("updateItemName", this.inlineEditedName)
-      if (this.inlineEditedName.length > 0 && this.inlineEditedName.length < this.maxNameLength) {
+      if (this.inlineEditedName.length > 0 && this.inlineEditedName.length <= this.maxNameLength) {
         this.loading = true
         {
           const updatedItem = Object.assign({}, item, {name: this.inlineEditedName})

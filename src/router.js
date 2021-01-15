@@ -34,6 +34,11 @@ export default new Router({
           component: () => import('@/views/dashboard/pages/Destination'),
         },
         {
+          name: 'Role List',
+          path: 'pages/role',
+          component: () => import('@/views/dashboard/pages/RoleList'),
+        },
+        {
           name: 'Task List',
           path: 'pages/task',
           component: () => import('@/views/dashboard/pages/TaskList'),
