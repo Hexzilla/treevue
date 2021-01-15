@@ -47,7 +47,8 @@
                           :counter="maxCodeLength"
                           :rules="codeRules"
                           label="Code"
-						              required
+                          class="input-uppercase"
+                          required
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
@@ -101,7 +102,7 @@
 
         <template v-slot:item.code="props">
           <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.code">
-            {{ props.item.code }}
+            {{ props.item.code.toUpperCase() }}
             <template v-slot:input>
               <div class="mt-4 title">Update Code</div>
               <v-text-field
@@ -109,6 +110,7 @@
                 :rules="codeRules"
                 :counter="maxCodeLength"
                 label="Edit"
+                class="input-uppercase"
                 single-line
                 autofocus
               ></v-text-field>
