@@ -2,15 +2,24 @@
   <v-container tag="section">
     <v-card icon="mdi-file-tree" title="Task List" class="px-5 py-2">
       <v-card class="d-flex flex-row-reverse" flat tile>
-        <v-btn
-          color="primary"
-          dark
-          v-bind="attrs"
-          v-on="on"
-          @click="addCategory"
-        >
-          New Category
-        </v-btn>
+        <div>
+          <v-btn
+            class="mx-4"
+            color="primary"
+            dark
+            @click="addCategory"
+          >
+            New Category
+          </v-btn>
+          <v-btn
+            class="px-2"
+            color="primary"
+            dark
+            @click="saveAll"
+          >
+            Save
+          </v-btn>
+        </div>
       </v-card>
 
       <v-card flat tile>
@@ -70,6 +79,7 @@
         :search="search"
         :open="initiallyOpen"
         :items="items"
+        item-key="ikey"
         activatable
       >
         <template v-slot:prepend="{ item }">
@@ -78,7 +88,7 @@
           </v-icon>
         </template>
         <template v-slot:append="{ item }">
-          <v-icon v-if="item.id != 0" color="green" @click="editTask(item)">
+          <v-icon v-if="item.ikey != 0" color="green" @click="editTask(item)">
             mdi-playlist-edit
           </v-icon>
         </template>
@@ -126,6 +136,8 @@ export default {
 
   created: async function () {
     this.items = await api.getTasks();
+    this.uniqueTreeId = this.setUniqueId(this.items)
+    console.log("uniqueTreeId:", this.uniqueTreeId, this.items)
     this.loading = false;
   },
 
@@ -161,6 +173,23 @@ export default {
       this.dialog = true;
     },
 
+    setUniqueId(_items) {
+      let iMaxKey = 0
+      for (const i in _items) {
+        const data = _items[i]
+        iMaxKey = Math.max(data.ikey, iMaxKey)
+        if (data.hasOwnProperty("children")) {
+          const iChildKey = this.setUniqueId(data.children)
+          iMaxKey = Math.max(iMaxKey, iChildKey)
+        }
+      }
+      return iMaxKey
+    },
+
+    nextId(_items) {
+      return 1 + _items.reduce((accumulator, item) => Math.max(accumulator, item.id), 0)
+    },
+
     uniqueId() {
       this.uniqueTreeId++;
       return this.uniqueTreeId;
@@ -168,42 +197,54 @@ export default {
 
     createCategory() {
       return {
-        id: this.uniqueId(),
+        id: this.nextId(this.items),
+        ikey: this.uniqueId(),
         name: this.editName,
         level: 0,
+        dataClass: 'Category',
         children: [],
       };
     },
 
     createTask() {
+      const level = this.selectedItem.level + 1
       return {
-        id: this.uniqueId(),
+        id: this.nextId(this.selectedItem.children),
+        ikey: this.uniqueId(),
         name: this.editName,
-        level: this.selectedItem.level + 1,
+        level: level,
+        activeFlag: 1,
+        dataClass: 'Task-Level-' + level,
         children: [],
       };
     },
 
-    async save() {
+    async saveAll() {
+      this.loading = true     
+      const updated = await api.updateTasks(this.items);
+      console.log("saveAll", updated);
+      this.loading = false
+    },
+
+    save() {
       if (!this.$refs.form.validate()) {
         return;
       }
-      if (this.actionMode === "add_category") {
-        this.items.push(this.createCategory());
-      } else if (this.actionMode === "add_task") {
-        this.selectedItem.children = [
-          ...this.selectedItem.children,
-          this.createTask(),
-        ];
-      } else {
-        this.selectedItem.name = this.editName;
-      }
       this.close();
 
-      this.loading = true;
-      const updated = await api.updateTasks(this.items);
-      console.log("updated", updated);
-      this.loading = false;
+      if (this.actionMode === "add_category") {
+        const category = this.createCategory()
+        console.log("save.category", category)
+        this.items.push(category);
+      } 
+      else if (this.actionMode === "add_task") {
+        const tazk = this.createTask()
+        console.log("save.tazk", tazk)
+        this.selectedItem.children = [...this.selectedItem.children, tazk];
+      } 
+      else {
+        this.selectedItem.name = this.editName;
+      }
     },
 
     close() {

@@ -120,18 +120,12 @@ class DataService {
         let tasks = []
         for (const key in Object.keys(items)) {
             const data = items[key]
-            let tazk = {
-                "id": index,
-                "name": data.name,
-                "index": data.id,
-                "level": data.level,
-                "children": []
-            }
+            let tazk = Object.assign({}, data, { ikey: index, children: [] })
             index++
             if (data.hasOwnProperty("children")) {
-                const children = this.arrangeTasks(data.children, index)
-                tazk["children"] = children.tasks
-                index = children.index
+                const ret = this.arrangeTasks(data.children, index)
+                tazk["children"] = ret.tasks
+                index = ret.index
             }
             tasks.push(tazk)
         }        
