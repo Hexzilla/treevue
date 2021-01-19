@@ -27,7 +27,7 @@
       </v-col>
       <v-col cols="12" sm="12" md="9">
         <ProjectDetails 
-          v-on:addPhase="openPhaseDialog"
+          v-on:addPhase="phase_addButtonClicked"
           v-bind:project="this.selectedProject">
         </ProjectDetails>
         <template v-if="IsPhaseList">
@@ -190,7 +190,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="closePhaseDialog"> Cancel </v-btn>
-          <v-btn :disabled="phaseValid" color="blue darken-1" text @click="addPhase">
+          <v-btn :disabled="phaseValid" color="blue darken-1" text @click="phase_dialogAddButtonClicked">
             Save
           </v-btn>
         </v-card-actions>
@@ -457,11 +457,11 @@ export default {
         this.project_edit(params.selected, params.project)
       }
       else {
-        this.project_edit(params.project)
+        this.project_add(params.project)
       }
     },
 
-    project_edit: async function(project) {
+    project_add: async function(project) {
       console.log('project_edit', project)
       this.wait = true
 
@@ -504,59 +504,36 @@ export default {
       }
     },
 
-    addProject: async function(project) {
-      // if (!this.$refs.projectForm.validate()) {
-      //   return;
-      // }
-
-      this.wait = true
-      var name = this.addDialogProjectName
-      var code = this.addDialogProjectCode
-      var dataToServer
-      if (!this.projectEdit) {
-        var newItem = {
-          "prj_id": ++this.projects[this.projects.length-1]["prj_id"],
-          "prj_code": code,
-          "prj_name": name,
-          "prj_presalesopendate": this.preSaleFromDate,
-          "prj_presalesclosedate": this.preSaleToDate,
-          "prj_executionopendate": this.billingFromDate,
-          "prj_executionclosedate": this.billingToDate,
-          "prj_warrantyopendate": this.warrantyFromDate,
-          "prj_warrantyclosedate": this.warrantyToDate,
-          "cl_id": ++this.projects[this.projects.length-1]["cl_id"],
-          "cl_code": this.addDialogCode,
-          "cl_name": this.addDialogCodeName,
-          "phases": []
-        }
-        const result = await api.addProject(newItem)
-        if (result) {
-          this.projects.push(newItem)
-        }
-      }
-      else {  
-        this.selectedProject.prj_code = code
-        this.selectedProject.prj_name = name
-        this.selectedProject.prj_presalesopendate = this.preSaleFromDate
-        this.selectedProject.prj_presalesclosedate = this.preSaleToDate
-        this.selectedProject.prj_executionopendate = this.billingFromDate
-        this.selectedProject.prj_executionclosedate = this.billingToDate
-        this.selectedProject.prj_warrantyopendate = this.warrantyFromDate
-        this.selectedProject.prj_warrantyclosedate = this.warrantyToDate
-        this.selectedProject.cl_code = this.addDialogCode
-        this.selectedProject.cl_name = this.addDialogCodeName
-        
-        await api.updateProject(this.selectedProject);
-      }
-      this.addDialog = false
-      this.wait = false
-    },
-
-    openPhaseDialog: function() {
-      console.log('openPhaseDialog')
+    phase_addButtonClicked: function() {
+      console.log('phase_addButtonClicked')
       this.phaseFromDate = ""
       this.phaseToDate = ""
       this.phaseDialog = true
+    },
+
+    phase_dialogAddButtonClicked: async function() {
+      console.log('phase_dialogAddButtonClicked', this.selectedProject)
+      const number = this.getPhaseNumber(this.selectedProject.phases) + 1
+      if (number <= 5) {
+        this.phaseDialog = false
+        this.wait = true
+
+        var newPhase =  {
+          "phase_opendate": this.phaseFromDate,
+          "phase_closedate": this.phaseToDate,
+          "phase_id": 0,
+          "phaseNumber": number,
+          "treeItems": []
+        }
+        const tempPhases = Object.assign({}, this.selectedProject.phases)
+        tempPhases.push(newPhase)
+
+        const result = await api.phaseSet(this.selectedProject.prj_id, tempPhases)
+        if (result) {
+          this.selectedProject.phases.push(newPhase)
+        }
+        this.wait = false
+      }
     },
 
     openTaskDialog: function(i) {
@@ -666,25 +643,7 @@ export default {
       return 0
     },
 
-    addPhase: async function() {
-      console.log('addPhase', this.selectedProject)
-      const number = this.getPhaseNumber(this.selectedProject.phases) + 1
-      if (number <= 5) {
-        var newPhase =  {
-                          "phase_opendate": this.phaseFromDate,
-                          "phase_closedate": this.phaseToDate,
-                          "phase_id": 0,
-                          "phaseNumber": number,
-                          "treeItems": []
-                        }
-        this.selectedProject.phases.push(newPhase)
-
-        this.phaseDialog = false
-        this.wait = true
-        await api.phaseSet(this.selectedProject.prj_id, this.selectedProject.phases)
-        this.wait = false
-      }
-    },
+    
 
     getIkeysFromPhase: function(keys, items) {
       for (var i in items) {
