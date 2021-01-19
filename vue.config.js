@@ -1,4 +1,8 @@
 module.exports = {
+  devServer: {
+    disableHostCheck: true,
+  },
+
   transpileDependencies: ['vuetify'],
 
   pluginOptions: {
@@ -9,4 +13,6 @@ module.exports = {
       enableInSFC: false,
     },
   },
+
+  lintOnSave: false,  
 }

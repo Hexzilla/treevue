@@ -8,7 +8,7 @@
     :src="barImage"
     mobile-break-point="960"
     app
-    width="280"
+    width="240"
     v-bind="$attrs"
   >
     <template v-slot:img="props">
