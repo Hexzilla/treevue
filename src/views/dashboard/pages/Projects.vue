@@ -525,9 +525,7 @@ export default {
           "phaseNumber": number,
           "treeItems": []
         }
-        const tempPhases = Object.assign({}, this.selectedProject.phases)
-        tempPhases.push(newPhase)
-
+        const tempPhases = [...this.selectedProject.phases, newPhase]
         const result = await api.phaseSet(this.selectedProject.prj_id, tempPhases)
         if (result) {
           this.selectedProject.phases.push(newPhase)
