@@ -1,6 +1,11 @@
 <template>
     <v-container class="px-0 py-0">
         <v-card>
+            <v-progress-linear
+                indeterminate
+                color="teal darken-2"
+                v-if="wait">
+            </v-progress-linear>
             <v-card-title>
                 <v-row>
                     <v-col class="pb-0" md="6">
@@ -203,6 +208,7 @@ export default {
     props: ["phase", "treeItems"],
 
     data: () => ({
+        wait: false,
         treeDialog: false,
         taskDialog: false,
         initiallyOpen: ["public"],
@@ -253,28 +259,35 @@ export default {
         },
 
         initialize() {
-            console.log('initialize_phase:', this.phase)
-            console.log('initialize_phase_treeItems:', this.phase.treeItems)
+            if (!this.phase.serverItems) {
+                this.phase.serverItems = []
+            }
+
+            //TOOD---console.log('initialize_phase:', this.phase)
+            //TOOD---console.log('initialize_phase_serverItems:', this.phase.serverItems)
             
             this.phase.tree = this.cloneTaskTree(this.treeItems)
             this.phase.tree = this.setDefaultValues(this.phase.tree)
-            console.log('initialize_phase_tree:', this.phase.tree)
+            //TOOD---console.log('initialize_phase_tree:', this.phase.tree)
 
-            this.updateStageItems(this.phase.treeItems, this.phase.tree, 0)
             this.phase.stageItems = this.makeStageItems('removed')
-            console.log('stageItems:', this.phase.stageItems)
+            //TOOD---console.log('stageItems:', this.phase.stageItems)
         },
 
         //----------------------mangae task list -------------------------------------
         cloneTaskTree(items) {
             return items.map((item) => {
-                //const node = Object.assign({}, item)
                 const node = { 
                     task: item, 
+                    id: item.id,
                     name: item.name, 
                     ikey: item.ikey,
                     level: item.level,
                     children: [] 
+                }
+                const serverItem = this.findServerItem(item)
+                if (serverItem) {
+                    node.state = "nochange"
                 }
                 if (item.children && item.children.length > 0) {
                     node.children = this.cloneTaskTree(item.children)
@@ -285,17 +298,17 @@ export default {
 
         getDefaultTask(level) {
             if (level == 0) {
-                return { info: {
+                return {
                     ph_phaseNumber: this.phase.phaseNumber,
                     est_MP_categ_id: 0,
                     est_MP_categ_phaseid: 0,
                     est_MP_categ_taskCategoryID: 0,
                     taskCateg_name: '',
                     children_cnt: 0,
-                }}
+                }
             }
             if (level == 1) {
-                 return { info: {
+                 return {
                     est_MP_TL1_id: 0,
                     est_MP_TL1_level1taskid: 0,
                     est_MP_TL1_level1taskDesc: '',
@@ -303,47 +316,47 @@ export default {
                     est_MP_TL1_dateto: '2021-01-01',
                     est_MP_TL1_unitOfMeasure: 'Nos',
                     est_MP_TL1_qty: 0
-                }}
+                }
             }
             if (level == 2) {
-                 return { info: {
+                 return {
                     est_MP_TL2_id: 0,
                     est_MP_TL2_level2taskid: 0,
                     TL2_name: '',
                     est_MP_TL2_level2taskDesc: '',
                     est_MP_TL2_unitOfMeasure: 'Nos',
-                    est_MP_TL1_qty: 0,
+                    est_MP_TL2_qty: 0,
                     children_cnt: 0,
-                }}
+                }
             }
             if (level == 3) {
-                 return { info: {
+                 return {
                     est_MP_TL3_id: 0,
                     est_MP_TL3_level3taskid: 0,
                     TL3_name: '',
                     est_MP_TL3_level3taskDesc: '',
                     est_MP_TL3_unitOfMeasure: 'Nos',
-                    est_MP_TL1_qty: 0,
+                    est_MP_TL3_qty: 0,
                     children_cnt: 0,
-                }}
+                }
             }
             if (level == 4) {
-                 return { info: {
+                 return {
                     est_MP_TL4_id: 0,
                     est_MP_TL4_level4taskid: 0,
                     TL4_name: '',
                     est_MP_TL4_level4taskDesc: '',
                     est_MP_TL4_unitOfMeasure: 'Nos',
-                    est_MP_TL1_qty: 0,
+                    est_MP_TL4_qty: 0,
                     children_cnt: 0,
-                }}
+                }
             }
             return {}
         },
 
         setDefaultValues(tasks) {
             return tasks.map((item) => {
-                const node = Object.assign(item, this.getDefaultTask(item.level))
+                const node = Object.assign(item, { info: this.getDefaultTask(item.level) })
                 if (node.children && node.children.length > 0) {
                     node.children = this.setDefaultValues(node.children)
                 }
@@ -391,16 +404,30 @@ export default {
 
                 if (!this.existsInKeyList(item, keyList)) {
                     if (item.state) {
-                        console.log('updateTreeState2----removed', item.ikey, item.state, item.name)
+                        //TOOD---console.log('updateTreeState2----removed', item.ikey, item.state, item.name)
                         item.state = "removed"
                     }
                 }
                 else if (!item.state) {
-                    console.log('updateTreeState2----newData', item.ikey, item.state, item.name)
+                    //TOOD---console.log('updateTreeState2----newData', item.ikey, item.state, item.name)
                     item.state = "newData"
                 }
                 if (item.children && item.children.length > 0) {
                     this.updateTreeState(item.children, keyList)
+                }
+            }
+        },
+
+        resetStates: function(tasks) {
+            for (const i in tasks) {
+                const item = tasks[i]
+
+                if (item.state) {
+                    item.state = 'nochange'
+                }
+                
+                if (item.children && item.children.length > 0) {
+                    this.resetStates(item.children)
                 }
             }
         },
@@ -423,35 +450,41 @@ export default {
             return result
         },
 
-        updateStageItems: function(projectItems, treeItems, level) {
-            const getTreeIdFromLevel = function(item, level) {
-                if (level == 0) return item.est_MP_categ_taskCategoryID
-                if (level == 1) return item.est_MP_TL1_level1taskid
-                if (level == 2) return item.est_MP_TL2_level2taskid
-                if (level == 3) return item.est_MP_TL3_level3taskid
-                if (level == 4) return item.est_MP_TL4_level4taskid
-                return null
-            }
+        getTreeIdFromLevel: function(item, level) {
+            if (level == 0) return item.est_MP_categ_taskCategoryID
+            if (level == 1) return item.est_MP_TL1_level1taskid
+            if (level == 2) return item.est_MP_TL2_level2taskid
+            if (level == 3) return item.est_MP_TL3_level3taskid
+            if (level == 4) return item.est_MP_TL4_level4taskid
+            return null
+        },
+        
+        findServerItem: function(subject) {
+            return this.findServerItemEx(this.phase.serverItems, subject, 0)
+        },
 
-            for (const i in projectItems) {
-                const item = projectItems[i]
-                const findId = getTreeIdFromLevel(item, level)
-
-                const treeItem = treeItems.find(it => it.task.id == findId)
-                if (!treeItem) {
-                    //TODO something wrong
-                    console.log('update_stage_items: error', item, findId)
-                    continue
-                }
-
-                treeItem.info = item
-                treeItem.state = 'nochange'
+        findServerItemEx: function(serverItems, subject, level) {
+            for (const i in serverItems) {
+                const item = serverItems[i]
                 
-                const children = item.children
-                if (children && children.length > 0) {
-                    this.updateStageItems(children, treeItem.children, level + 1)
+                if (level == subject.level) {
+                    const findId = this.getTreeIdFromLevel(item, level)
+                    if (subject.id == findId) {
+                        return item
+                    }
+                }
+                else {
+                    const children = item.children
+                    if (children && children.length > 0) {
+                        return this.findServerItemEx(children, subject, level + 1)
+                    }
                 }
             }
+            return null
+        },
+
+        addServerCategory: function(serverItem) {
+            this.phase.serverItems.push(serverItem)
         },
         //----------------------manage sync data -------------------------------------
 
@@ -475,10 +508,10 @@ export default {
 
         openTaskDialog: function() {
             this.treeDialog = true;
-            console.log('open_dialog_tree_items', this.phase.stageItems)
+            //TOOD---console.log('open_dialog_tree_items', this.phase.stageItems)
 
             const keys = this.getKeyList(this.phase.stageItems);
-            console.log('open_dialog_keys', keys)
+            //TOOD---console.log('open_dialog_keys', keys)
             
             this.dialogTreeSelected = keys;
             this.ownKeys = keys;
@@ -491,13 +524,13 @@ export default {
         saveTree: function() {
             this.treeDialog = false
 
-            console.log('saveTree.selected:', this.dialogTreeSelected);
+            //TOOD---console.log('saveTree.selected:', this.dialogTreeSelected);
             this.updateTreeState(this.phase.tree, this.dialogTreeSelected)
 
-            console.log('saveTree.this.phase.tree:', this.phase.tree);
+            //TOOD---console.log('saveTree.this.phase.tree:', this.phase.tree);
 
-            this.phase.stageItems = this.makeStageItems()
-            console.log('saveTree.stageItems:', this.phase.stageItems)
+            this.phase.stageItems = this.makeStageItems('removed')
+            //TOOD---console.log('saveTree.stageItems:', this.phase.stageItems)
         },
 
         openTaskDateDialog: function(item) {
@@ -545,17 +578,29 @@ export default {
         saveTask: async function(index) {
             this.wait = true;
 
-            const items = this.makeStageItems('_')
+            const items = this.makeStageItems('NoFilter')
             for (const i in items) {
                 const item = items[i]
-                console.log('saveTask_add_item', item, item.state)
+                //TOOD---console.log('saveTask_add_item', item, item.state)
 
                 if (item.state === "newData" || item.state === "modified") {
                     const insertId = await api.addProjectCategory(this.phase.phase_id, item)
+                    //TOOD---console.log('Save_Add_Category_Result', item, insertId)
+
                     if (insertId) {
-                        const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
-                        updateItem.info.est_MP_categ_id = insertId
-                        updateItem.info.est_MP_categ_taskCategoryID = item.id
+                        let serverItem = this.findServerItem(item)
+                        if (!serverItem) {
+                            serverItem = this.getDefaultTask(0)
+                            serverItem.est_MP_categ_id = insertId
+                            serverItem.est_MP_categ_taskCategoryID = item.id
+                            this.addServerCategory(serverItem)
+                            //TOOD---console.log('Save_New_Server_Category', serverItem)
+                        }
+                        else {
+                            serverItem.est_MP_categ_id = insertId
+                            serverItem.est_MP_categ_taskCategoryID = item.id
+                            //TOOD---console.log('Save_Update_Server_Category', serverItem)
+                        }
                     }
                 }
 
@@ -566,12 +611,12 @@ export default {
             }
 
             // Update removed items.
-            for (const i in items) {
+            /*for (const i in items) {
                 const item = items[i]
-                console.log('saveTask_remove_item', item, item.state)
+                //TOOD---console.log('saveTask_remove_item', item, item.state)
 
                 const children = item.children
-                console.log('saveTask_remove_item_children', children)
+                //TOOD---console.log('saveTask_remove_item_children', children)
                 if (children && children.length > 0) {
                     await this.saveTaskByLevel(item, 'removed', 1)
                 }
@@ -583,44 +628,44 @@ export default {
                         updateItem.state = null
                     }
                 }
-            }
+            }*/
 
+            this.resetStates(this.phase.tree)
             this.wait = false;
         },
 
         saveTaskByLevel: async function(tazk, state, level) {
-            console.log('saveTaskByLevel________', tazk.ikey, state, level)
-            for (const i in tazk.children) {
-                const child = tazk.children[i]
-                if (level == 1) {
-                    child.info.est_MP_TL1_level1taskid = child.id
-                }
-                else if (level == 2) {
-                    child.info.est_MP_TL2_level2taskid = child.id
-                }
-                else if (level == 3) {
-                    child.info.est_MP_TL3_level3taskid = child.id
-                }
-                else if (level == 4) {
-                    child.info.est_MP_TL4_level4taskid = child.id
-                }
+            const pInfo = this.findServerItem(tazk)
+            //TOOD---console.log('saveTaskByLevel________info', this.phase.serverItems, tazk, pInfo)
+            if (pInfo) {
+                tazk.info = pInfo
             }
-            if (state !== 'removed') {
-                await api.saveTaskByLevel(tazk, state, tazk.level)
+            else {
+                tazk.info = this.getDefaultTask(level)
+            }
+
+            const insertId = await api.saveTaskByLevel(tazk, state, tazk.level)
+            if (insertId) {
+                //TOOD---console.log('saveTaskByLevel________inserted', insertId, tazk)
+                const children = await api.getTaskByKeyInfo(tazk, tazk.level)
+                if (children) {
+                    const projItem = this.findServerItem(tazk)
+                    projItem.children = children
+                    //TOOD---console.log('saveTaskByLevel________serverItems', this.phase.serverItems)
+                }
             }
 
             for (const i in tazk.children) {
                 const child = tazk.children[i]
                 if (child.children && child.children.length > 0) {
-                    console.log('saveTaskByLevel________call_children')
                     await this.saveTaskByLevel(child, state, level+1)
                 }
             }
 
-            if (state === 'removed') {
-                console.log('saveTaskByLevel________call_root', tazk.ikey, state, tazk.level)
-                await api.saveTaskByLevel(tazk, state, tazk.level)
-            }
+            // if (state === 'removed') {
+            //     //TOOD---console.log('saveTaskByLevel________call_root', tazk.ikey, state, tazk.level)
+            //     await api.saveTaskByLevel(tazk, state, tazk.level)
+            // }
         }
     }
 };

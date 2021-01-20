@@ -4,7 +4,7 @@ import task from "./task.js";
 
 const getProjects = async function() {
     const tempList = await findAll()
-    console.log("project.getProjects", tempList)
+    //TOOD---console.log("project.getProjects", tempList)
     if (!tempList) {
         return null
     }
@@ -16,13 +16,13 @@ const getProjects = async function() {
         }
 
         const project = projects[0]
-        //console.log('project_______________', project.phases)
+        ////TOOD---console.log('project_______________', project.phases)
         if (project.phases) {
             const phases = await Promise.all(
                 project.phases.map(async (phase) => {
                     const categories = await getProjectCategory(proj.prj_code, phase.phaseNumber)
-                    console.log('categories', categories)
-                    phase.treeItems = categories.map((it) => {
+                    //TOOD---console.log('categories', categories)
+                    phase.serverItems = categories.map((it) => {
                         it.level = 0
                         it.name = it.taskCateg_name
                         return it
@@ -37,11 +37,19 @@ const getProjects = async function() {
     }))
 
     const items = project_list.filter(proj => proj != null)
-    console.log("Projects-Result", items)
+    //TOOD---console.log("Projects-Result", items)
     return items
 }
 
-const getTaskUpdateMethod = async function(task, level) {
+const getTaskByKeyInfo = async function(task) {
+    if (task.level == 0) return await getTask1(task.info.est_MP_categ_id)
+    if (task.level == 1) return await getTask2(task.info.est_MP_TL1_id)
+    if (task.level == 2) return await getTask3(task.info.est_MP_TL2_id)
+    if (task.level == 3) return await getTask4(task.info.est_MP_TL3_id)
+    return null
+}
+
+const getTaskByLevel = async function(task, level) {
     if (level == 1) return await getTask1(task.est_MP_categ_id)
     if (level == 2) return await getTask2(task.est_MP_TL1_id)
     if (level == 3) return await getTask3(task.est_MP_TL2_id)
@@ -52,10 +60,10 @@ const getTaskUpdateMethod = async function(task, level) {
 const updateTasks = async function(tasks, level) {
     for (const i in tasks) {
         const tazk = tasks[i]
-        console.log('update_task_start', level, tazk)
+        //TOOD---console.log('update_task_start', level, tazk)
 
-        tazk.children = await getTaskUpdateMethod(tazk, level)
-        console.log('update_tasks', level, tazk.children)
+        tazk.children = await getTaskByLevel(tazk, level)
+        //TOOD---console.log('update_tasks', level, tazk.children)
 
         if (level < 4) {
             if (tazk.children && tazk.children.length > 0) {
@@ -64,20 +72,23 @@ const updateTasks = async function(tasks, level) {
         }
     }
 
-    console.log('update_tasks_result', tasks)
+    //TOOD---console.log('update_tasks_result', tasks)
     return tasks
 }
 
 const updateTaskList = async function(project) {
-    console.log('updateTaskList', project)
+    //TOOD---console.log('updateTaskList', project)
     for (const i in project.phases) {
         const phase = project.phases[i]
 
-        if (phase.treeItems) {
-            phase.treeItems = await updateTasks(phase.treeItems, 1)
+        if (phase.serverItems) {
+            phase.serverItems = await updateTasks(phase.serverItems, 1)
+        }
+        else {
+            phase.serverItems = []
         }
     }
-    console.log('updateTaskList_result', project)
+    //TOOD---console.log('updateTaskList_result', project)
     project.updated = true
 }
 
@@ -100,17 +111,17 @@ const addFieldToTask = function(obj) {
 const findAll = async function() {
     try {
         const response = await http.post("/plan/projectFindAll")
-        console.log("project.findAll", response.status)
+        //TOOD---console.log("project.findAll", response.status)
         if (response.status == 200) {
             const data = response.data;
-            console.log("project.findAll", data.success)
+            //TOOD---console.log("project.findAll", data.success)
             if (data.success) {
                 return data.response.allCarrierRecord
             }
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -134,13 +145,13 @@ const addProject = async function(project) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return false
 }
 
 const updateProject = async function(project) {
-    console.log('updateProject', project)
+    //TOOD---console.log('updateProject', project)
     const data = {
         "id": project.prj_id,
         "code": project.prj_code,
@@ -160,7 +171,7 @@ const updateProject = async function(project) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return false
 }
@@ -179,7 +190,7 @@ const getProjectWithPhase = async function(projectCode) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -198,7 +209,7 @@ const phaseSet = async function(projectId, phases) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return false
 }
@@ -248,13 +259,13 @@ const removeProjectCategory = async function(phaseId, category) {
 const projectCategory = async function(data) {
     try {
         const response = await http.post("/plan/projectCategory", data)
-        console.log(response)
+        //TOOD---console.log(response)
         if (response.status == 200) {
             return response.data
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return null
 }
@@ -264,10 +275,10 @@ const getTask1 = async function(categoryId) {
         "action": "FETCH",
         "est_MP_categ_id": categoryId
     }
-    console.log('get_task1', data)
+    //TOOD---console.log('get_task1', data)
     try {
         const response = await http.post("/plan/projectL1Task", data)
-        console.log('get_task1_response', response.status)
+        //TOOD---console.log('get_task1_response', response.status)
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {
@@ -276,7 +287,7 @@ const getTask1 = async function(categoryId) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -288,7 +299,7 @@ const getTask2 = async function(task1Id) {
     }
     try {
         const response = await http.post("/plan/projectL2Task", data)
-        console.log('getTask2_response', response.status)
+        //TOOD---console.log('getTask2_response', response.status)
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {
@@ -297,7 +308,7 @@ const getTask2 = async function(task1Id) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -317,7 +328,7 @@ const getTask3 = async function(task2Id) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -337,7 +348,7 @@ const getTask4 = async function(task3Id) {
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return []
 }
@@ -351,7 +362,12 @@ const saveTaskByLevel = async function(tazk, state, level) {
 }
 
 const saveTask1 = async function(tazk, state) {
-    console.log('saveTask1--1', tazk)
+    ////TOOD---console.log('saveTask1--1', tazk)
+    for (const i in tazk.children) {
+        const child = tazk.children[i]
+        child.info.est_MP_TL1_level1taskid = child.id
+    }
+    
     const data = tazk.children.map((child) => {
         if (state.indexOf(child.state) < 0) {
             return null
@@ -376,23 +392,28 @@ const saveTask1 = async function(tazk, state) {
         "est_MP_categ_id": tazk.info.est_MP_categ_id,
         "dataToSave": postData
     }
-    console.log('saveTask1--2', jsonData)
+    //TOOD---console.log('saveTask1--2', jsonData)
     try {
         const response = await http.post("/plan/projectL1TaskSave", jsonData)
         if (response.status == 200) {
             if (response.data && response.data.success) {
-                return response.data.response.allCarrierRecord.insertId
+                return true
             }
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return null
 }
 
 const saveTask2 = async function(tazk, state) {
-    console.log('saveTask2--1', tazk)
+    ////TOOD---console.log('saveTask2--1', tazk)
+    for (const i in tazk.children) {
+        const child = tazk.children[i]
+        child.info.est_MP_TL2_level2taskid = child.id
+    }
+
     const data = tazk.children.map((child) => {
         if (state.indexOf(child.state) < 0) {
             return null
@@ -415,23 +436,28 @@ const saveTask2 = async function(tazk, state) {
         "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
         "dataToSave": postData
     }
-    console.log('saveTask2--2', jsonData)
+    //TOOD---console.log('saveTask2--2', jsonData)
     try {
         const response = await http.post("/plan/projectL2TaskSave", jsonData)
         if (response.status == 200) {
             if (response.data && response.data.success) {
-                return response.data.response.allCarrierRecord.insertId
+                return true
             }
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return null
 }
 
 const saveTask3 = async function(tazk, state) {
-    console.log('saveTask3--1', tazk)
+    ////TOOD---console.log('saveTask3--1', tazk)
+    for (const i in tazk.children) {
+        const child = tazk.children[i]
+        child.info.est_MP_TL3_level3taskid = child.id
+    }
+
     const data = tazk.children.map((child) => {
         if (state.indexOf(child.state) < 0) {
             return null
@@ -454,23 +480,28 @@ const saveTask3 = async function(tazk, state) {
         "est_MP_TL2_id": tazk.info.est_MP_TL2_id,
         "dataToSave": postData
     }
-    console.log('saveTask3--2', jsonData)
+    //TOOD---console.log('saveTask3--2', jsonData)
     try {
         const response = await http.post("/plan/projectL3TaskSave", jsonData)
         if (response.status == 200) {
             if (response.data && response.data.success) {
-                return response.data.response.allCarrierRecord.insertId
+                return true
             }
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return null
 }
 
 const saveTask4 = async function(tazk, state) {
-    console.log('saveTask4--1', tazk)
+    ////TOOD---console.log('saveTask4--1', tazk)
+    for (const i in tazk.children) {
+        const child = tazk.children[i]
+        child.info.est_MP_TL4_level4taskid = child.id
+    }
+
     const data = tazk.children.map((child) => {
         if (state.indexOf(child.state) < 0) {
             return null
@@ -493,17 +524,17 @@ const saveTask4 = async function(tazk, state) {
         "est_MP_TL3_id": tazk.info.est_MP_TL3_id,
         "dataToSave": postData
     }
-    console.log('saveTask4--2', jsonData)
+    //TOOD---console.log('saveTask4--2', jsonData)
     try {
         const response = await http.post("/plan/projectL4TaskSave", jsonData)
         if (response.status == 200) {
             if (response.data && response.data.success) {
-                return response.data.response.allCarrierRecord.insertId
+                return true
             }
         }
     }
     catch (error) {
-        console.log(error)
+        //TOOD---console.log(error)
     }
     return null
 }
@@ -513,6 +544,8 @@ export default {
     addProject,
     updateProject,
     updateTaskList,
+    getTaskByLevel,
+    getTaskByKeyInfo,
     phaseSet,
     saveTask1,
     saveTask2,

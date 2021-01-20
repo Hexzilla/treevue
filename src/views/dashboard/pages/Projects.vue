@@ -274,14 +274,17 @@ export default {
     },
 
     project_add: async function(project) {
-      console.log('project_edit', project)
+      console.log('project_add', project)
       this.wait = true
 
       const result = await api.addProject(project)
       if (result) {
-        project.phases = []
-        this.projects.push(project)
+        const updated = await api.getProjectWithPhase(project.prj_code)
+          if (updated && updated.length > 0) {
+            this.projects.push(updated[0])
+          }
       }
+      console.log('project_add', this.projects)
       this.project_reset()
       this.wait = false
     },
@@ -302,17 +305,21 @@ export default {
       this.wait = false
     },
 
+    project_reset: function() {
+      
+    },
+
     project_sample: function() {
       return {
         prj_name: '',
         prj_code: '',
         cl_id: 0,
-        prj_presalesopendate: '',
-        prj_presalesclosedate: '',
-        prj_executionopendate: '',
-        prj_executionclosedate: '',
-        prj_warrantyopendate: '',
-        prj_warrantyclosedate: '',
+        prj_presalesopendate: '2021-01-11',
+        prj_presalesclosedate: '2021-03-01',
+        prj_executionopendate: '2021-01-12',
+        prj_executionclosedate: '2021-03-01',
+        prj_warrantyopendate: '2021-01-13',
+        prj_warrantyclosedate: '2021-01-01',
       }
     },
 
@@ -335,12 +342,15 @@ export default {
           "phase_closedate": this.phaseToDate,
           "phase_id": 0,
           "phaseNumber": number,
-          "treeItems": []
+          "serverItems": []
         }
         const tempPhases = [...this.selectedProject.phases, newPhase]
         const result = await api.phaseSet(this.selectedProject.prj_id, tempPhases)
         if (result) {
-          this.selectedProject.phases.push(newPhase)
+          const updated = await api.getProjectWithPhase(this.selectedProject.prj_code)
+          if (updated && updated.length > 0) {
+            this.selectedProject.phases = updated[0].phases
+          }
         }
         this.wait = false
       }
@@ -350,7 +360,7 @@ export default {
       this.treeDialog = true
 
       var keys = []
-      this.getIkeysFromPhase(keys, this.selectedProject.phases[i].treeItems)
+      this.getIkeysFromPhase(keys, this.selectedProject.phases[i].serverItems)
 
       this.dialogTreeSelected = keys
       
@@ -372,7 +382,7 @@ export default {
       }
       const tree = this.makeTreeFromSelect(this.treeItems, selectedItems)
       console.log("saveTreeButtonClicked", tree)
-      this.selectedProject.phases[this.phaseIndex].treeItems = tree
+      this.selectedProject.phases[this.phaseIndex].serverItems = tree
       this.treeDialog = false
     },
 
@@ -444,10 +454,8 @@ export default {
     },
 
     getPhaseNumber: function(phases) {
-      console.log('getPhaseNumber', phases.length)
       if (phases && phases.length > 0) {
         const numbers = phases.map((it) => it.phaseNumber)
-        console.log('getPhaseNumber', numbers)
         return Math.max.apply(Math, numbers)
       }
       return 0
@@ -485,127 +493,6 @@ export default {
     qtyChange: function(event, item) {
       item.qty = event
     },
-
-    saveCategory: async function(phase) {
-      const tasks = phase.treeItems
-      if (tasks.length > 0) {
-        this.wait = true
-        const result = await api.saveCategory(tasks)
-        if (result) {
-          for (const i in tasks) {
-            tasks[i].action = "nochange"
-          }
-        }
-        this.wait = false
-      }
-    },
-
-    saveTask: async function(i) {
-      const items = this.selectedProject.phases[i].treeItems
-      this.wait = true
-      await this.saveTask1(items)
-      this.wait = false
-    },
-
-    saveTask1: async function(items) {
-      for (var i in items) {
-        var temp = {
-          "action": "SAVE",
-          "est_MP_categ_id": items[i].id,
-          "dataToSave": []
-        }
-        var dataToSave = []
-        for (var j in items[i].children) {
-          dataToSave.push(
-            {
-              "action": "--------newData",
-              "est_MP_TL1_id": items[i].children[j].id,
-              "est_MP_TL1_level1taskid": items[i].children[j].id,
-              "est_MP_TL1_level1taskDesc": items[i].children[j].description,
-              "est_MP_TL1_datefrom": items[i].children[j].dateFrom,
-              "est_MP_TL1_dateto": items[i].children[j].dateTo,
-              "est_MP_TL1_unitOfMeasure": "Nos",
-              "est_MP_TL1_qty": items[i].children[j].qty,
-            }
-          )
-          this.saveTask2(items[i].children)
-        }
-        //await api.saveTask1(temp)
-      }
-    },
-
-    saveTask2: async function(items) {
-      for (var i in items) {
-        var temp = {
-          "action": "SAVE",
-          "est_MP_TL1_id": items[i].id,
-          "dataToSave": []
-        }
-        var dataToSave = []
-        for (var j in items[i].children) {
-          dataToSave.push(
-            {
-              "action": "anewData",
-              "est_MP_TL2_id": items[i].children[j].id,
-              "est_MP_TL2_level2taskid": items[i].children[j].id, 
-              "est_MP_TL2_level2taskDesc": items[i].children[j].description,
-              "est_MP_TL2_unitOfMeasure": "Item",
-              "est_MP_TL2_qty": items[i].children[j].qty,
-            }
-          )
-          this.saveTask3(items[i].children)
-        }
-        await api.saveTask2(temp)
-      }
-    },
-
-    saveTask3: async function(items) {
-      for (var i in items) {
-        var temp = {
-          "action": "SAVE",
-          "est_MP_TL2_id": items[i].id,
-          "dataToSave": []
-        }
-        var dataToSave = []
-        for (var j in items[i].children) {
-          dataToSave.push(
-            {
-              "action": "newData",
-              "est_MP_TL3_level3taskid": items[i].children[j].id,
-              "est_MP_TL3_level3taskDesc": items[i].children[j].description,
-              "est_MP_TL3_unitOfMeasure": "Nos",
-              "est_MP_TL3_qty": items[i].children[j].qty,
-            }
-          )
-          this.saveTask4(items[i].children)
-        }
-        await api.saveTask3(temp)
-      }
-    },
-
-    saveTask4: async function(items) {
-      for (var i in items) {
-        var temp = {
-          "action": "SAVE",
-          "est_MP_TL3_id": items[i].id,
-          "dataToSave": []
-        }
-        var dataToSave = []
-        for (var j in items[i].children) {
-          dataToSave.push(
-            {
-              "action": "newData",
-              "est_MP_TL4_id": items[i].children[j].id,
-              "est_MP_TL4_level4taskid": items[i].children[j].id,
-              "est_MP_TL4_level4taskDesc": items[i].children[j].description,
-              "est_MP_TL4_unitOfMeasure": "Nos",
-              "est_MP_TL4_qty": items[i].children[j].qty,
-            }
-          )
-        }
-        await api.saveTask4(temp)
-      }
-    }
   },
 };
 </script>
