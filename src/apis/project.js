@@ -23,6 +23,7 @@ const getProjects = async function() {
                     const categories = await getProjectCategory(proj.prj_code, phase.phaseNumber)
                     console.log('categories', categories)
                     phase.treeItems = categories.map((it) => {
+                        it.level = 0
                         it.name = it.taskCateg_name
                         return it
                     })
@@ -78,7 +79,6 @@ const updateTaskList = async function(project) {
 const getTree = async function() {
     const tasks = await task.findAll()
     addFieldToTask(tasks.children)
-    console.log("getTree", tasks)
     return tasks
 }
 

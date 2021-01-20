@@ -5,9 +5,7 @@
                 <v-row>
                     <v-col class="pb-0" md="6">
                         <p class="mx-4" style="font-size:15px; font-weight:bold">
-                            Phase{{ selectedPhase.phaseNumber }}&nbsp;&nbsp;&nbsp;&nbsp;({{
-                                selectedPhase.phase_opendate + " ~ " + selectedPhase.phase_closedate
-                            }})
+                            {{ phaseTitle() }}
                         </p>
                     </v-col>
                     <v-col class="pb-0" md="3">
@@ -22,7 +20,7 @@
                 <v-col>
                     <v-treeview
                         :open="initiallyOpen"
-                        :items="selectedPhase.treeItems"
+                        :items="phase.stageItems"
                         item-key="ikey"
                         activatable>
                         <template v-slot:prepend="{ item }">
@@ -202,7 +200,7 @@ import apiTasks from "@/apis/task.js";
 
 export default {
     name: "ProjectPhase",
-    props: ["selectedPhase", "treeItems"],
+    props: ["phase", "treeItems"],
 
     data: () => ({
         treeDialog: false,
@@ -215,44 +213,221 @@ export default {
         taskToMenu: false,
         taskDialog: false,
         selectedTree: null,
-        phaseIndex: 0,
+        phaseIndex: 0, //TODO
         ownKeys: []
     }),
 
-    created: function() {},
-
     computed: {
-        IsPhaseList() {
-            return this.selectedProject && this.selectedProject.phases.length > 0;
-        },
-        GetPhaseList: function() {
-            if (!this.selectedProject) return [];
-            return this.selectedProject.phases;
-        },
         taskValid() {
             if (this.taskFromDate && this.taskToDate) return false;
             return true;
         }
     },
 
+    created: function() {
+        this.initialize()
+    },
+
+    //TODO
+    //category.est_MP_categ_id                  // unique_category_id
+    //category.est_MP_categ_phaseid             // unique_phase_id
+    //category.est_MP_categ_taskCategoryID      // id in task_category_list
+
     methods: {
-        getIkeys: function(tasks) {
+        phaseTitle() {
+            return `Phase ${this.phase.phaseNumber} (${this.phase.phase_opendate} ~ ${this.phase.phase_closedate})`
+        },
+
+        initialize() {
+            console.log('initialize_phase:', this.phase)
+            console.log('initialize_phase_treeItems:', this.phase.treeItems)
+            
+            this.phase.tree = this.cloneTaskTree(this.treeItems)
+            this.phase.tree = this.setDefaultValues(this.phase.tree)
+            console.log('initialize_phase_tree:', this.phase.tree)
+
+            this.updateStageItems(this.phase.tree)
+            this.phase.stageItems = this.makeStageItems()
+            console.log('stageItems:', this.phase.stageItems)
+        },
+
+        //----------------------mangae task list -------------------------------------
+        cloneTaskTree(items) {
+            return items.map((item) => {
+                const node = Object.assign({}, item)
+                if (node.children && node.children.length > 0) {
+                    node.children = this.cloneTaskTree(node.children)
+                }
+                return node
+            })
+        },
+
+        getDefaultTask(level) {
+            if (level == 0) {
+                return {
+                    live_task: {
+                        ph_phaseNumber: this.phase.phaseNumber,
+                        est_MP_categ_id: 0,
+                        est_MP_categ_phaseid: 0,
+                        est_MP_categ_taskCategoryID: 0,
+                        taskCateg_name: '',
+                        children_cnt: 0,
+                    }
+                }
+            }
+            if (level == 1) {
+
+            }
+            //TODO
+            return {}
+        },
+
+        setDefaultValues(tasks) {
+            return tasks.map((item) => {
+                const node = Object.assign(item, this.getDefaultTask(item.level))
+                if (node.children && node.children.length > 0) {
+                    node.children = this.setDefaultValues(node.children)
+                }
+                return node
+            })
+        },
+
+        findTaskByKey(tasks, ikey) {
+            const item = tasks.find(it => it.ikey == ikey)
+            if (item) {
+                return item
+            }
+            for (const i in tasks) {
+                if (tasks[i].children && tasks[i].children.length > 0) {
+                    const result = this.findTaskByKey(tasks[i].children, ikey)
+                    if (result) {
+                        return result
+                    }
+                }
+            }
+            return null
+        },
+
+        existsInKeyList: function(task, keyList) {
+            if (keyList.find(it => it == task.ikey)) {
+                return true;
+            }
+            const children = task.children
+            if (children && children.length > 0) {
+                for (var i in children) {
+                    if (this.existsInKeyList(children[i], keyList)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        },
+        //----------------------mangae task list -------------------------------------
+
+        //----------------------phase.tree state -------------------------------------
+        updateTreeState: function(tasks, keyList) {
+            for (const i in tasks) {
+                const item = tasks[i]
+                if (!this.existsInKeyList(item, keyList)) {
+                    continue
+                }
+                if (!item.state) {
+                    item.state = "newData"
+                }
+                if (item.children && item.children.length > 0) {
+                    this.updateTreeState(item.children, keyList)
+                }
+            }
+        },
+        //----------------------phase.tree state -------------------------------------
+
+        //----------------------manage sync data -------------------------------------
+        makeStageItems: function() {
+            return this.getStageItems(this.phase.tree)
+        },
+
+        getStageItems: function(tasks) {
+            const temp = tasks.map((it) => Object.assign({}, it))
+            const result = temp.filter((it) => it.state)
+            for (const i in result) {
+                const children = result[i].children
+                if (children && children.length > 0) {
+                    result[i].children = this.getStageItems(children)
+                }
+            }
+            return result
+        },
+
+        updateStageItems: function(tasks) {
+            for (const i in tasks) {
+                const item = tasks[i]
+                
+                const tazk = this.findProjectTask(this.phase.treeItems, item, item.level)
+                if (tazk) {
+                    item.live_task = tazk
+                    if (!item.state) {
+                        item.state = 'nochange'
+                    }
+                }
+
+                if (item.children && item.children.length > 0) {
+                    this.updateStageItems(item.children)
+                }
+            }
+        },
+
+        findProjectTask(projectTasks, subject, level) {
+            if (level == 0) {
+                const found = projectTasks.find(it => it.level == level && it.est_MP_categ_taskCategoryID == subject.id)
+                if (found) {
+                    return found
+                }
+                for (const i in projectTasks) {
+                    const children = projectTasks[i]
+                    if (children && children.length > 0) {
+                        const tt = this.findProjectTask(children, subject, level)
+                        if (tt) {
+                            return tt
+                        }
+                    }
+                }
+            }
+            else if (level == 1) {
+                //TODO
+            }
+            return null
+        },
+        //----------------------manage sync data -------------------------------------
+
+        getKeyList: function(tasks) {
             return apiTasks.getKeyList(tasks)
         },
 
-        openTaskDialog: function(i) {
+        openTaskDialog: function() {
             this.treeDialog = true;
-            console.log('openTaskDialog', this.selectedProject.phases[i].treeItems)
-            apiTasks.setTaskItemKey(this.treeItems, this.selectedProject.phases[i].treeItems, 0)
-            const keys = this.getIkeys(this.selectedProject.phases[i].treeItems);
-            console.log('keys-1', keys)
+            console.log('open_dialog_tree_items', this.phase.stageItems)
+
+            const keys = this.getKeyList(this.phase.stageItems);
+            console.log('open_dialog_keys', keys)
+            
             this.dialogTreeSelected = keys;
             this.ownKeys = keys;
-            this.phaseIndex = i;
         },
 
         closeTreeDialog: function() {
             this.treeDialog = false;
+        },
+        
+        saveTree: function() {
+            this.treeDialog = false
+
+            console.log('saveTree.selected:', this.dialogTreeSelected);
+            this.updateTreeState(this.phase.tree, this.dialogTreeSelected)
+
+            console.log('saveTree.this.phase.tree:', this.phase.tree);
+
+            this.phase.stageItems = this.makeStageItems()
+            console.log('saveTree.stageItems:', this.phase.stageItems)
         },
 
         openTaskDateDialog: function(item) {
@@ -324,24 +499,9 @@ export default {
             }
         },
 
-        findChildByKey: function(task, ikeyList) {
-            if (ikeyList.find(it => it == task.ikey)) {
-                return true;
-            }
-            if (task.children && task.children.length > 0) {
-                for (var i in task.children) {
-                    const _tazk = task.children[i];
-                    if (this.findChildByKey(_tazk, ikeyList)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        },
-
         getSelectedTasks: function(tasks, keyList) {
             const selectedTrees = tasks.reduce((accumulator, item) => {
-                if (this.findChildByKey(item, keyList)) {
+                if (this.existsInKeyList(item, keyList)) {
                     accumulator.push(item);
                 }
                 return accumulator;
@@ -354,31 +514,6 @@ export default {
                 }
             }
             return selectedTrees
-        },
-
-        saveTree: function() {
-            this.treeDialog = false
-
-            console.log('dialogTreeSelected', this.dialogTreeSelected);
-            const selectedItems = this.getSelectedTasks(this.treeItems, this.dialogTreeSelected);
-            console.log('selectedItems_items', selectedItems);
-
-            // const selectedIKeys = this.getIkeys(_selectedItems)
-            // let added = this.getAddedKeys(this.ownKeys, selectedIKeys)
-            // let removed = this.getRemovedKeys(this.ownKeys, selectedIKeys)
-            // let modified = [] //this.getModifiedKeys(this.ownKeys, selectedIKeys)
-
-            // console.log('_selectedItems_added', added);
-            // console.log('_selectedItems_removed', removed);
-            // //console.log('_selectedItems_modified', modified);
-
-            // const treeItems = this.selectedProject.phases[this.phaseIndex].treeItems
-            // this.changeUserAction(treeItems, added, removed, modified)
-
-            const treeItems = this.selectedProject.phases[this.phaseIndex].treeItems
-            const selectedKeys = this.getIkeys(selectedItems)
-
-            console.log('selectedItems_result', treeItems);
         },
 
         saveTask: async function(index) {

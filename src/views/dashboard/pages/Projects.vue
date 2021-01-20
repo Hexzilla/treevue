@@ -34,7 +34,7 @@
           <ProjectPhase
             v-for="phase in this.selectedProject.phases"
             :key="phase.phase_id"
-            v-bind:selectedPhase="phase"
+            v-bind:phase="phase"
             v-bind:treeItems="treeItems"
           ></ProjectPhase>
         </div>
