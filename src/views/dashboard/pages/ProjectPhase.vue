@@ -518,25 +518,24 @@ export default {
 
         saveTask: async function(index) {
             this.wait = true;
-            const phases = this.selectedProject.phases[index];
-            const items = phases.treeItems;
-
-            // save category
+                        
+            const items = this.phase.stageItems
             for (const i in items) {
                 const item = items[i]
                 console.log('saveTask-1', item)
-                if (item.userAction == "newData") {
-                    await api.addProjectCategory(phases.phase_id, item)
+
+                if (item.state == "newData") {
+                    await api.addProjectCategory(this.phase.phase_id, item)
                 }
-                else if (item.userAction == "removed") {
-                    await api.removeProjectCategory(phases.phase_id, item)
+                else if (item.state == "removed") {
+                    await api.removeProjectCategory(this.phase.phase_id, item)
                 }
             }
 
             // save task
-            for (var i in items) {
-                await this.saveTaskByLevel(items[i], 1);
-            }
+            // for (var i in items) {
+            //     await this.saveTaskByLevel(items[i], 1);
+            // }
             this.wait = false;
         },
 
