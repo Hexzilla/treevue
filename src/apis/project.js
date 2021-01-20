@@ -342,18 +342,18 @@ const getTask4 = async function(task3Id) {
     return []
 }
 
-const saveTaskByLevel = async function(tazk, level) {
-    if (level == 0) return await this.saveTask1(tazk)
-    if (level == 1) return await this.saveTask2(tazk)
-    if (level == 2) return await this.saveTask3(tazk)
-    if (level == 3) return await this.saveTask4(tazk)
+const saveTaskByLevel = async function(tazk, state, level) {
+    if (level == 0) return await this.saveTask1(tazk, state)
+    if (level == 1) return await this.saveTask2(tazk, state)
+    if (level == 2) return await this.saveTask3(tazk, state)
+    if (level == 3) return await this.saveTask4(tazk, state)
     return false
 }
 
-const saveTask1 = async function(tazk) {
+const saveTask1 = async function(tazk, state) {
     console.log('saveTask1--1', tazk)
     const data = tazk.children.map((child) => {
-        if (child.state == 'nochange') {
+        if (state.indexOf(child.state) < 0) {
             return null
         }
         return {
@@ -367,10 +367,14 @@ const saveTask1 = async function(tazk) {
             "est_MP_TL1_qty": child.info.est_MP_TL1_qty
         }
     })
+    const postData = data.filter(it => it != null)
+    if (postData.length <= 0) {
+        return
+    }
     const jsonData = {
         "action": "SAVE",
         "est_MP_categ_id": tazk.info.est_MP_categ_id,
-        "dataToSave": data.filter(it => it != null)
+        "dataToSave": postData
     }
     console.log('saveTask1--2', jsonData)
     try {
@@ -387,10 +391,10 @@ const saveTask1 = async function(tazk) {
     return null
 }
 
-const saveTask2 = async function(tazk) {
+const saveTask2 = async function(tazk, state) {
     console.log('saveTask2--1', tazk)
     const data = tazk.children.map((child) => {
-        if (child.state == 'nochange') {
+        if (state.indexOf(child.state) < 0) {
             return null
         }
         return {
@@ -402,10 +406,14 @@ const saveTask2 = async function(tazk) {
             "est_MP_TL2_qty": child.info.est_MP_TL2_qty
         }
     })
+    const postData = data.filter(it => it != null)
+    if (postData.length <= 0) {
+        return
+    }
     const jsonData = {
         "action": "SAVE",
         "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
-        "dataToSave": data.filter(it => it != null)
+        "dataToSave": postData
     }
     console.log('saveTask2--2', jsonData)
     try {
@@ -422,10 +430,10 @@ const saveTask2 = async function(tazk) {
     return null
 }
 
-const saveTask3 = async function(tazk) {
+const saveTask3 = async function(tazk, state) {
     console.log('saveTask3--1', tazk)
     const data = tazk.children.map((child) => {
-        if (child.state == 'nochange') {
+        if (state.indexOf(child.state) < 0) {
             return null
         }
         return {
@@ -437,10 +445,14 @@ const saveTask3 = async function(tazk) {
             "est_MP_TL3_qty": child.info.est_MP_TL3_qty
         }
     })
+    const postData = data.filter(it => it != null)
+    if (postData.length <= 0) {
+        return
+    }
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
-        "dataToSave": data.filter(it => it != null)
+        "est_MP_TL2_id": tazk.info.est_MP_TL2_id,
+        "dataToSave": postData
     }
     console.log('saveTask3--2', jsonData)
     try {
@@ -457,10 +469,10 @@ const saveTask3 = async function(tazk) {
     return null
 }
 
-const saveTask4 = async function(tazk) {
+const saveTask4 = async function(tazk, state) {
     console.log('saveTask4--1', tazk)
     const data = tazk.children.map((child) => {
-        if (child.state == 'nochange') {
+        if (state.indexOf(child.state) < 0) {
             return null
         }
         return {
@@ -472,10 +484,14 @@ const saveTask4 = async function(tazk) {
             "est_MP_TL4_qty": child.info.est_MP_TL4_qty
         }
     })
+    const postData = data.filter(it => it != null)
+    if (postData.length <= 0) {
+        return
+    }
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
-        "dataToSave": data.filter(it => it != null)
+        "est_MP_TL3_id": tazk.info.est_MP_TL3_id,
+        "dataToSave": postData
     }
     console.log('saveTask4--2', jsonData)
     try {

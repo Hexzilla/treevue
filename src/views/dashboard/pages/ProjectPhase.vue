@@ -273,6 +273,7 @@ export default {
                     task: item, 
                     name: item.name, 
                     ikey: item.ikey,
+                    level: item.level,
                     children: [] 
                 }
                 if (item.children && item.children.length > 0) {
@@ -390,11 +391,12 @@ export default {
 
                 if (!this.existsInKeyList(item, keyList)) {
                     if (item.state) {
+                        console.log('updateTreeState2----removed', item.ikey, item.state, item.name)
                         item.state = "removed"
                     }
-                    continue
                 }
-                if (!item.state) {
+                else if (!item.state) {
+                    console.log('updateTreeState2----newData', item.ikey, item.state, item.name)
                     item.state = "newData"
                 }
                 if (item.children && item.children.length > 0) {
@@ -410,7 +412,6 @@ export default {
         },
 
         getStageItems: function(tasks, filter) {
-            console.log('get_stage_items', filter)
             const temp = tasks.map((it) => Object.assign({}, it))
             const result = temp.filter((it) => it.state && it.state != filter)
             for (const i in result) {
@@ -524,22 +525,22 @@ export default {
             item.qty = event;
         },
 
-        getSelectedTasks: function(tasks, keyList) {
-            const selectedTrees = tasks.reduce((accumulator, item) => {
-                if (this.existsInKeyList(item, keyList)) {
-                    accumulator.push(item);
-                }
-                return accumulator;
-            }, []);
+        // getSelectedTasks: function(tasks, keyList) {
+        //     const selectedTrees = tasks.reduce((accumulator, item) => {
+        //         if (this.existsInKeyList(item, keyList)) {
+        //             accumulator.push(item);
+        //         }
+        //         return accumulator;
+        //     }, []);
 
-            for (const i in selectedTrees) {
-                const _tazk = selectedTrees[i]
-                if (_tazk.children && _tazk.children.length > 0) {
-                        _tazk.children = this.getSelectedTasks(_tazk.children, keyList)
-                }
-            }
-            return selectedTrees
-        },
+        //     for (const i in selectedTrees) {
+        //         const _tazk = selectedTrees[i]
+        //         if (_tazk.children && _tazk.children.length > 0) {
+        //                 _tazk.children = this.getSelectedTasks(_tazk.children, keyList)
+        //         }
+        //     }
+        //     return selectedTrees
+        // },
 
         saveTask: async function(index) {
             this.wait = true;
@@ -547,9 +548,9 @@ export default {
             const items = this.makeStageItems('_')
             for (const i in items) {
                 const item = items[i]
-                console.log('saveTask_item', item)
+                console.log('saveTask_add_item', item, item.state)
 
-                if (item.state == "newData") {
+                if (item.state === "newData" || item.state === "modified") {
                     const insertId = await api.addProjectCategory(this.phase.phase_id, item)
                     if (insertId) {
                         const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
@@ -557,24 +558,38 @@ export default {
                         updateItem.info.est_MP_categ_taskCategoryID = item.id
                     }
                 }
-                else if (item.state == "removed") {
+
+                const children = item.children
+                if (children && children.length > 0) {
+                    await this.saveTaskByLevel(item, 'newData|modified', 1)
+                }
+            }
+
+            // Update removed items.
+            for (const i in items) {
+                const item = items[i]
+                console.log('saveTask_remove_item', item, item.state)
+
+                const children = item.children
+                console.log('saveTask_remove_item_children', children)
+                if (children && children.length > 0) {
+                    await this.saveTaskByLevel(item, 'removed', 1)
+                }
+
+                if (item.state == "removed") {
                     const result = await api.removeProjectCategory(this.phase.phase_id, item)
                     if (result) {
                         const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
                         updateItem.state = null
                     }
                 }
-
-                const children = item.children
-                if (children && children.length > 0) {
-                    await this.saveTaskByLevel(item, 1)
-                }
             }
 
             this.wait = false;
         },
 
-        saveTaskByLevel: async function(tazk, level) {
+        saveTaskByLevel: async function(tazk, state, level) {
+            console.log('saveTaskByLevel________', tazk.ikey, state, level)
             for (const i in tazk.children) {
                 const child = tazk.children[i]
                 if (level == 1) {
@@ -590,13 +605,21 @@ export default {
                     child.info.est_MP_TL4_level4taskid = child.id
                 }
             }
-            await api.saveTaskByLevel(tazk, tazk.level)
+            if (state !== 'removed') {
+                await api.saveTaskByLevel(tazk, state, tazk.level)
+            }
 
             for (const i in tazk.children) {
                 const child = tazk.children[i]
                 if (child.children && child.children.length > 0) {
-                    await this.saveTaskByLevel(child, level+1)
+                    console.log('saveTaskByLevel________call_children')
+                    await this.saveTaskByLevel(child, state, level+1)
                 }
+            }
+
+            if (state === 'removed') {
+                console.log('saveTaskByLevel________call_root', tazk.ikey, state, tazk.level)
+                await api.saveTaskByLevel(tazk, state, tazk.level)
             }
         }
     }
