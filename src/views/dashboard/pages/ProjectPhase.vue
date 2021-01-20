@@ -268,9 +268,15 @@ export default {
         //----------------------mangae task list -------------------------------------
         cloneTaskTree(items) {
             return items.map((item) => {
-                const node = Object.assign({}, item)
-                if (node.children && node.children.length > 0) {
-                    node.children = this.cloneTaskTree(node.children)
+                //const node = Object.assign({}, item)
+                const node = { 
+                    task: item, 
+                    name: item.name, 
+                    ikey: item.ikey,
+                    children: [] 
+                }
+                if (item.children && item.children.length > 0) {
+                    node.children = this.cloneTaskTree(item.children)
                 }
                 return node
             })
@@ -278,70 +284,59 @@ export default {
 
         getDefaultTask(level) {
             if (level == 0) {
-                return {
-                    info: {
-                        ph_phaseNumber: this.phase.phaseNumber,
-                        est_MP_categ_id: 0,
-                        est_MP_categ_phaseid: 0,
-                        est_MP_categ_taskCategoryID: 0,
-                        taskCateg_name: '',
-                        children_cnt: 0,
-                    }
-                }
+                return { info: {
+                    ph_phaseNumber: this.phase.phaseNumber,
+                    est_MP_categ_id: 0,
+                    est_MP_categ_phaseid: 0,
+                    est_MP_categ_taskCategoryID: 0,
+                    taskCateg_name: '',
+                    children_cnt: 0,
+                }}
             }
             if (level == 1) {
-                return {
-                    info: {
-                        est_MP_TL1_id: 0,
-                        est_MP_TL1_level1taskid: 0,
-                        est_MP_TL1_level1taskDesc: '',
-                        est_MP_TL1_datefrom: '2021-01-01',
-                        est_MP_TL1_dateto: '2021-01-01',
-                        est_MP_TL1_unitOfMeasure: 'Nos',
-                        est_MP_TL1_qty: 0
-                    }
-                }
+                 return { info: {
+                    est_MP_TL1_id: 0,
+                    est_MP_TL1_level1taskid: 0,
+                    est_MP_TL1_level1taskDesc: '',
+                    est_MP_TL1_datefrom: '2021-01-01',
+                    est_MP_TL1_dateto: '2021-01-01',
+                    est_MP_TL1_unitOfMeasure: 'Nos',
+                    est_MP_TL1_qty: 0
+                }}
             }
             if (level == 2) {
-                return {
-                    info: {
-                        est_MP_TL2_id: 0,
-                        est_MP_TL2_level2taskid: 0,
-                        TL2_name: '',
-                        est_MP_TL2_level2taskDesc: '',
-                        est_MP_TL2_unitOfMeasure: 'Nos',
-                        est_MP_TL1_qty: 0,
-                        children_cnt: 0,
-                    }
-                }
+                 return { info: {
+                    est_MP_TL2_id: 0,
+                    est_MP_TL2_level2taskid: 0,
+                    TL2_name: '',
+                    est_MP_TL2_level2taskDesc: '',
+                    est_MP_TL2_unitOfMeasure: 'Nos',
+                    est_MP_TL1_qty: 0,
+                    children_cnt: 0,
+                }}
             }
             if (level == 3) {
-                return {
-                    info: {
-                        est_MP_TL3_id: 0,
-                        est_MP_TL3_level3taskid: 0,
-                        TL3_name: '',
-                        est_MP_TL3_level3taskDesc: '',
-                        est_MP_TL3_unitOfMeasure: 'Nos',
-                        est_MP_TL1_qty: 0,
-                        children_cnt: 0,
-                    }
-                }
+                 return { info: {
+                    est_MP_TL3_id: 0,
+                    est_MP_TL3_level3taskid: 0,
+                    TL3_name: '',
+                    est_MP_TL3_level3taskDesc: '',
+                    est_MP_TL3_unitOfMeasure: 'Nos',
+                    est_MP_TL1_qty: 0,
+                    children_cnt: 0,
+                }}
             }
             if (level == 4) {
-                return {
-                    info: {
-                        est_MP_TL4_id: 0,
-                        est_MP_TL4_level4taskid: 0,
-                        TL4_name: '',
-                        est_MP_TL4_level4taskDesc: '',
-                        est_MP_TL4_unitOfMeasure: 'Nos',
-                        est_MP_TL1_qty: 0,
-                        children_cnt: 0,
-                    }
-                }
+                 return { info: {
+                    est_MP_TL4_id: 0,
+                    est_MP_TL4_level4taskid: 0,
+                    TL4_name: '',
+                    est_MP_TL4_level4taskDesc: '',
+                    est_MP_TL4_unitOfMeasure: 'Nos',
+                    est_MP_TL1_qty: 0,
+                    children_cnt: 0,
+                }}
             }
-            //TODO
             return {}
         },
 
@@ -441,9 +436,10 @@ export default {
                 const item = projectItems[i]
                 const findId = getTreeIdFromLevel(item, level)
 
-                const treeItem = treeItems.find(it => it.id == findId)
+                const treeItem = treeItems.find(it => it.task.id == findId)
                 if (!treeItem) {
                     //TODO something wrong
+                    console.log('update_stage_items: error', item, findId)
                     continue
                 }
 
@@ -459,7 +455,21 @@ export default {
         //----------------------manage sync data -------------------------------------
 
         getKeyList: function(tasks) {
-            return apiTasks.getKeyList(tasks)
+            const thiz = this
+            let result = []
+            tasks.forEach(function(item) {
+                let subItemKeys = null
+                if (item.children && item.children.length > 0) {
+                    subItemKeys = thiz.getKeyList(item.children);                    
+                }
+                if (subItemKeys && subItemKeys.length > 0) {
+                    result = result.concat(subItemKeys)
+                }
+                else {
+                    result.push(item.ikey)
+                }
+            })
+            return result
         },
 
         openTaskDialog: function() {
