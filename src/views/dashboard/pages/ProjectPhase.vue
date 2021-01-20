@@ -44,7 +44,7 @@
                                         v-if="item.level > 0"
                                         @change="descriptionChange($event, item)"
                                         label="Description"
-                                        :value="item.info.est_MP_TL1_level1taskDesc"
+                                        :value="getDescription(item)"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col style="width: 10px;padding:0 5px;">
@@ -237,6 +237,21 @@ export default {
             return `Phase ${this.phase.phaseNumber} (${this.phase.phase_opendate} ~ ${this.phase.phase_closedate})`
         },
 
+        getDescription(item) {
+            if (item.level == 1) {
+                return item.info.est_MP_TL1_level1taskDesc
+            }
+            else if (item.level == 2) {
+                return item.info.est_MP_TL2_level2taskDesc
+            }
+            else if (item.level == 3) {
+                return item.info.est_MP_TL3_level3taskDesc
+            }
+            else if (item.level == 4) {
+                return item.info.est_MP_TL4_level4taskDesc
+            }
+        },
+
         initialize() {
             console.log('initialize_phase:', this.phase)
             console.log('initialize_phase_treeItems:', this.phase.treeItems)
@@ -295,6 +310,32 @@ export default {
                         TL2_name: '',
                         est_MP_TL2_level2taskDesc: '',
                         est_MP_TL2_unitOfMeasure: 'Nos',
+                        est_MP_TL1_qty: 0,
+                        children_cnt: 0,
+                    }
+                }
+            }
+            if (level == 3) {
+                return {
+                    info: {
+                        est_MP_TL3_id: 0,
+                        est_MP_TL3_level3taskid: 0,
+                        TL3_name: '',
+                        est_MP_TL3_level3taskDesc: '',
+                        est_MP_TL3_unitOfMeasure: 'Nos',
+                        est_MP_TL1_qty: 0,
+                        children_cnt: 0,
+                    }
+                }
+            }
+            if (level == 4) {
+                return {
+                    info: {
+                        est_MP_TL4_id: 0,
+                        est_MP_TL4_level4taskid: 0,
+                        TL4_name: '',
+                        est_MP_TL4_level4taskDesc: '',
+                        est_MP_TL4_unitOfMeasure: 'Nos',
                         est_MP_TL1_qty: 0,
                         children_cnt: 0,
                     }

@@ -353,6 +353,9 @@ const saveTaskByLevel = async function(tazk, level) {
 const saveTask1 = async function(tazk) {
     console.log('saveTask1--1', tazk)
     const data = tazk.children.map((child) => {
+        if (child.state == 'nochange') {
+            return null
+        }
         return {
             "action": child.state,
             "est_MP_TL1_id": child.info.est_MP_TL1_id,
@@ -367,7 +370,7 @@ const saveTask1 = async function(tazk) {
     const jsonData = {
         "action": "SAVE",
         "est_MP_categ_id": tazk.info.est_MP_categ_id,
-        "dataToSave": data
+        "dataToSave": data.filter(it => it != null)
     }
     console.log('saveTask1--2', jsonData)
     try {
@@ -387,6 +390,9 @@ const saveTask1 = async function(tazk) {
 const saveTask2 = async function(tazk) {
     console.log('saveTask2--1', tazk)
     const data = tazk.children.map((child) => {
+        if (child.state == 'nochange') {
+            return null
+        }
         return {
             "action": child.state,
             "est_MP_TL2_id": child.info.est_MP_TL2_id,
@@ -399,7 +405,7 @@ const saveTask2 = async function(tazk) {
     const jsonData = {
         "action": "SAVE",
         "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
-        "dataToSave": data
+        "dataToSave": data.filter(it => it != null)
     }
     console.log('saveTask2--2', jsonData)
     try {
@@ -417,61 +423,73 @@ const saveTask2 = async function(tazk) {
 }
 
 const saveTask3 = async function(tazk) {
+    console.log('saveTask3--1', tazk)
     const data = tazk.children.map((child) => {
+        if (child.state == 'nochange') {
+            return null
+        }
         return {
-            "action": child.userAction,
-            "est_MP_TL3_id": child.id,               //TODO
-            "est_MP_TL3_level3taskid": child.id,
-            "est_MP_TL3_level3taskDesc": child.description,
-            "est_MP_TL3_unitOfMeasure": "Nos",      //TODO
-            "est_MP_TL3_qty": child.qty
+            "action": child.state,
+            "est_MP_TL3_id": child.info.est_MP_TL3_id,
+            "est_MP_TL3_level3taskid": child.info.est_MP_TL3_level3taskid,
+            "est_MP_TL3_level3taskDesc": child.info.est_MP_TL3_level3taskDesc,
+            "est_MP_TL3_unitOfMeasure": child.info.est_MP_TL3_unitOfMeasure,
+            "est_MP_TL3_qty": child.info.est_MP_TL3_qty
         }
     })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL2_id": tazk.id,     //TODO
-        "dataToSave": data
+        "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
+        "dataToSave": data.filter(it => it != null)
     }
-
+    console.log('saveTask3--2', jsonData)
     try {
         const response = await http.post("/plan/projectL3TaskSave", jsonData)
         if (response.status == 200) {
-            return true
+            if (response.data && response.data.success) {
+                return response.data.response.allCarrierRecord.insertId
+            }
         }
     }
     catch (error) {
         console.log(error)
     }
-    return false
+    return null
 }
 
 const saveTask4 = async function(tazk) {
+    console.log('saveTask4--1', tazk)
     const data = tazk.children.map((child) => {
+        if (child.state == 'nochange') {
+            return null
+        }
         return {
-            "action": child.userAction,
-            "est_MP_TL4_id": child.id,               //TODO
-            "est_MP_TL4_level4taskid": child.id,
-            "est_MP_TL4_level4taskDesc": child.description,
-            "est_MP_TL4_unitOfMeasure": "Nos",      //TODO
-            "est_MP_TL4_qty": child.qty
+            "action": child.state,
+            "est_MP_TL4_id": child.info.est_MP_TL4_id,
+            "est_MP_TL4_level4taskid": child.info.est_MP_TL4_level4taskid,
+            "est_MP_TL4_level4taskDesc": child.info.est_MP_TL4_level4taskDesc,
+            "est_MP_TL4_unitOfMeasure": child.info.est_MP_TL4_unitOfMeasure,
+            "est_MP_TL4_qty": child.info.est_MP_TL4_qty
         }
     })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL3_id": tazk.id,
-        "dataToSave": data
+        "est_MP_TL1_id": tazk.info.est_MP_TL1_id,
+        "dataToSave": data.filter(it => it != null)
     }
-
+    console.log('saveTask4--2', jsonData)
     try {
         const response = await http.post("/plan/projectL4TaskSave", jsonData)
         if (response.status == 200) {
-            return true
+            if (response.data && response.data.success) {
+                return response.data.response.allCarrierRecord.insertId
+            }
         }
     }
     catch (error) {
         console.log(error)
     }
-    return false
+    return null
 }
 
 export default {
