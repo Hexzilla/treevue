@@ -22,7 +22,10 @@ const getProjects = async function() {
                 project.phases.map(async (phase) => {
                     const categories = await getProjectCategory(proj.prj_code, phase.phaseNumber)
                     console.log('categories', categories)
-                    phase.treeItems = categories
+                    phase.treeItems = categories.map((it) => {
+                        it.name = it.taskCateg_name
+                        return it
+                    })
                     return phase
                 })
             )
@@ -65,14 +68,17 @@ const updateTasks = async function(tasks, level) {
 }
 
 const updateTaskList = async function(project) {
-    console.log('project~~~', project)
-    project.phases.treeItems = await updateTasks(project.phases.treeItems, 1)
+    console.log('updateTaskList', project)
+    if (project.phases.treeItems) {
+        project.phases.treeItems = await updateTasks(project.phases.treeItems, 1)
+    }
     project.updated = true
 }
 
 const getTree = async function() {
-    const tasks = task.findAll()
+    const tasks = await task.findAll()
     addFieldToTask(tasks.children)
+    console.log("getTree", tasks)
     return tasks
 }
 
@@ -207,24 +213,24 @@ const getProjectCategory = async function(prjCode, phaseNumber) {
     return null
 }
 
-const addProjectCategory = async function(phaseId, categoryId) {
+const addProjectCategory = async function(phaseId, category) {
     const jsonData = {
         "action": "INCLUDE",
         "details": {
             "phase_id": phaseId,
-            "addingCategoryid": categoryId
+            "addingCategoryid": category.id
         }
     };
     const result = await projectCategory(jsonData)
     return result && result.success
 }
 
-const removeProjectCategory = async function(phaseId, categoryId) {
+const removeProjectCategory = async function(phaseId, category) {
     const jsonData = {
         "action": "EXCLUDE",
         "details": {
             "phase_id": phaseId,
-            "removingCategoryid": categoryId
+            "removingCategoryid": category.est_MP_categ_taskCategoryID
         }
     };
     const result = await projectCategory(jsonData)
@@ -326,15 +332,36 @@ const getTask4 = async function(task3Id) {
     return []
 }
 
-const saveTask1 = async function(categoryId, data) {
+const saveTaskByLevel = async function(tazk, level) {
+    if (level == 1) return await this.saveTask1(tazk)
+    if (level == 2) return await this.saveTask2(tazk)
+    if (level == 3) return await this.saveTask3(tazk)
+    if (level == 4) return await this.saveTask4(tazk)
+    return false
+}
+
+const saveTask1 = async function(tazk) {
+    console.log('saveTask1--1', tazk)
+    const data = tazk.children.map((child) => {
+        return {
+            "action": child.userAction,
+            "est_MP_TL1_id": child.id,               //TODO
+            "est_MP_TL1_level1taskid": child.id,
+            "est_MP_TL1_level1taskDesc": child.description,
+            "est_MP_TL1_datefrom": child.dateFrom,  //TODO
+            "est_MP_TL1_dateto": child.dateTo,  
+            "est_MP_TL1_unitOfMeasure": "Nos",      //TODO
+            "est_MP_TL1_qty": child.qty
+        }
+    })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_categ_id": categoryId,
+        "est_MP_categ_id": tazk.est_MP_categ_id,
         "dataToSave": data
     }
-
+    console.log('saveTask1--2', jsonData)
     try {
-        const response = await http.post("/plan/projectL1TaskSave", JSON.stringify(jsonData))
+        const response = await http.post("/be/pm/plan/projectL1TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -345,15 +372,25 @@ const saveTask1 = async function(categoryId, data) {
     return false
 }
 
-const saveTask2 = async function(task1Id, data) {
+const saveTask2 = async function(tazk) {
+    const data = tazk.children.map((child) => {
+        return {
+            "action": child.userAction,
+            "est_MP_TL2_id": child.id,               //TODO
+            "est_MP_TL2_level2taskid": child.id,
+            "est_MP_TL2_level2taskDesc": child.description,
+            "est_MP_TL2_unitOfMeasure": "Nos",      //TODO
+            "est_MP_TL2_qty": child.qty
+        }
+    })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL1_id": categoryId,
+        "est_MP_TL1_id": tazk.id,     //TODO
         "dataToSave": data
     }
 
     try {
-        const response = await http.post("/plan/projectL2TaskSave", JSON.stringify(jsonData))
+        const response = await http.post("/be/pm/plan/projectL2TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -364,15 +401,25 @@ const saveTask2 = async function(task1Id, data) {
     return false
 }
 
-const saveTask3 = async function(task2Id, data) {
+const saveTask3 = async function(tazk) {
+    const data = tazk.children.map((child) => {
+        return {
+            "action": child.userAction,
+            "est_MP_TL3_id": child.id,               //TODO
+            "est_MP_TL3_level3taskid": child.id,
+            "est_MP_TL3_level3taskDesc": child.description,
+            "est_MP_TL3_unitOfMeasure": "Nos",      //TODO
+            "est_MP_TL3_qty": child.qty
+        }
+    })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL2_id": categoryId,
+        "est_MP_TL2_id": tazk.id,     //TODO
         "dataToSave": data
     }
 
     try {
-        const response = await http.post("/plan/projectL3TaskSave", JSON.stringify(jsonData))
+        const response = await http.post("/be/pm/plan/projectL3TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -383,15 +430,25 @@ const saveTask3 = async function(task2Id, data) {
     return false
 }
 
-const saveTask4 = async function(task3Id, data) {
+const saveTask4 = async function(tazk) {
+    const data = tazk.children.map((child) => {
+        return {
+            "action": child.userAction,
+            "est_MP_TL4_id": child.id,               //TODO
+            "est_MP_TL4_level4taskid": child.id,
+            "est_MP_TL4_level4taskDesc": child.description,
+            "est_MP_TL4_unitOfMeasure": "Nos",      //TODO
+            "est_MP_TL4_qty": child.qty
+        }
+    })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_TL3_id": categoryId,
+        "est_MP_TL3_id": tazk.id,
         "dataToSave": data
     }
 
     try {
-        const response = await http.post("/plan/projectL4TaskSave", JSON.stringify(jsonData))
+        const response = await http.post("/be/pm/plan/projectL4TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -406,6 +463,7 @@ export default {
     findAll,
     addProject,
     updateProject,
+    updateTaskList,
     phaseSet,
     saveTask1,
     saveTask2,
@@ -421,6 +479,6 @@ export default {
     removeProjectCategory,
     getProjectWithPhase,
     getProjects,
-    updateTaskList,
-    getTree
+    getTree,
+    saveTaskByLevel
 }
