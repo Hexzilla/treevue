@@ -241,12 +241,13 @@ export default {
     submit: function () {},
     
     project_listItemClicked: async function(project) {
-      this.selectedProject = project
+      console.log('listItemClicked', project.updated)
       if (!project.updated) {
         this.wait = true
         await api.updateTaskList(project)
         this.wait = false
       }
+      this.selectedProject = project
     },
 
     project_addButtonClicked: function() {

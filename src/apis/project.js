@@ -52,14 +52,14 @@ const getTaskUpdateMethod = async function(task, level) {
 const updateTasks = async function(tasks, level) {
     for (const i in tasks) {
         const tazk = tasks[i]
-        console.log('update_task_start', tazk)
+        console.log('update_task_start', level, tazk)
 
         tazk.children = await getTaskUpdateMethod(tazk, level)
         console.log('update_tasks', level, tazk.children)
 
         if (level < 4) {
             if (tazk.children && tazk.children.length > 0) {
-                tazk.children = await updateTasks(tazk.children, level + 1)
+                await updateTasks(tazk.children, level + 1)
             }
         }
     }
@@ -70,9 +70,14 @@ const updateTasks = async function(tasks, level) {
 
 const updateTaskList = async function(project) {
     console.log('updateTaskList', project)
-    if (project.phases.treeItems) {
-        project.phases.treeItems = await updateTasks(project.phases.treeItems, 1)
+    for (const i in project.phases) {
+        const phase = project.phases[i]
+
+        if (phase.treeItems) {
+            phase.treeItems = await updateTasks(phase.treeItems, 1)
+        }
     }
+    console.log('updateTaskList_result', project)
     project.updated = true
 }
 
@@ -262,6 +267,7 @@ const getTask1 = async function(categoryId) {
     console.log('get_task1', data)
     try {
         const response = await http.post("/plan/projectL1Task", data)
+        console.log('get_task1_response', response.status)
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {
@@ -282,6 +288,7 @@ const getTask2 = async function(task1Id) {
     }
     try {
         const response = await http.post("/plan/projectL2Task", data)
+        console.log('getTask2_response', response.status)
         if (response.status == 200) {
             const data = response.data;
             if (data.success) {

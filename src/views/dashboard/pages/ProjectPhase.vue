@@ -246,7 +246,7 @@ export default {
             this.phase.tree = this.setDefaultValues(this.phase.tree)
             console.log('initialize_phase_tree:', this.phase.tree)
 
-            this.updateStageItems(this.phase.tree)
+            this.updateStageItems(this.phase.treeItems, this.phase.tree, 0)
             this.phase.stageItems = this.makeStageItems('removed')
             console.log('stageItems:', this.phase.stageItems)
         },
@@ -374,44 +374,35 @@ export default {
             return result
         },
 
-        updateStageItems: function(tasks) {
-            for (const i in tasks) {
-                const item = tasks[i]
+        updateStageItems: function(projectItems, treeItems, level) {
+            const getTreeIdFromLevel = function(item, level) {
+                if (level == 0) return item.est_MP_categ_taskCategoryID
+                if (level == 1) return item.est_MP_TL1_level1taskid
+                return null
+            }
+
+            for (const i in projectItems) {
+                const item = projectItems[i]
+                console.log('xxxxx1xxxxxxxxxxx', level, item, treeItems)
+
+                const findId = getTreeIdFromLevel(item, level)
+                console.log('xxxxx2xxxxxxxxxxx', findId)
+
+                const treeItem = treeItems.find(it => it.id == findId)
+                console.log('xxxxx3xxxxxxxxxxx', treeItem)
+                if (!treeItem) {
+                    //TODO something wrong
+                    continue
+                }
+
+                treeItem.info = item
+                treeItem.state = 'nochange'
                 
-                const tazk = this.findProjectTask(this.phase.treeItems, item, item.level)
-                if (tazk) {
-                    item.info = tazk
-                    if (!item.state) {
-                        item.state = 'nochange'
-                    }
-                }
-
-                if (item.children && item.children.length > 0) {
-                    this.updateStageItems(item.children)
+                const children = item.children
+                if (children && children.length > 0) {
+                    this.updateStageItems(children, treeItem.children, level + 1)
                 }
             }
-        },
-
-        findProjectTask(projectTasks, subject, level) {
-            if (level == 0) {
-                const found = projectTasks.find(it => it.level == level && it.est_MP_categ_taskCategoryID == subject.id)
-                if (found) {
-                    return found
-                }
-                for (const i in projectTasks) {
-                    const children = projectTasks[i]
-                    if (children && children.length > 0) {
-                        const tt = this.findProjectTask(children, subject, level)
-                        if (tt) {
-                            return tt
-                        }
-                    }
-                }
-            }
-            else if (level == 1) {
-                //TODO
-            }
-            return null
         },
         //----------------------manage sync data -------------------------------------
 
