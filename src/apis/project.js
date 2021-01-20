@@ -16,7 +16,7 @@ const getProjects = async function() {
         }
 
         const project = projects[0]
-        console.log('project_______________', project.phases)
+        //console.log('project_______________', project.phases)
         if (project.phases) {
             const phases = await Promise.all(
                 project.phases.map(async (phase) => {
@@ -222,7 +222,10 @@ const addProjectCategory = async function(phaseId, category) {
         }
     };
     const result = await projectCategory(jsonData)
-    return result && result.success
+    if (result && result.success) {
+        return result.response.allCarrierRecord.insertId
+    }
+    return null
 }
 
 const removeProjectCategory = async function(phaseId, category) {
@@ -230,7 +233,7 @@ const removeProjectCategory = async function(phaseId, category) {
         "action": "EXCLUDE",
         "details": {
             "phase_id": phaseId,
-            "removingCategoryid": category.live_task.est_MP_categ_taskCategoryID
+            "removingCategoryid": category.info.est_MP_categ_taskCategoryID
         }
     };
     const result = await projectCategory(jsonData)
@@ -333,10 +336,10 @@ const getTask4 = async function(task3Id) {
 }
 
 const saveTaskByLevel = async function(tazk, level) {
-    if (level == 1) return await this.saveTask1(tazk)
-    if (level == 2) return await this.saveTask2(tazk)
-    if (level == 3) return await this.saveTask3(tazk)
-    if (level == 4) return await this.saveTask4(tazk)
+    if (level == 0) return await this.saveTask1(tazk)
+    if (level == 1) return await this.saveTask2(tazk)
+    if (level == 2) return await this.saveTask3(tazk)
+    if (level == 3) return await this.saveTask4(tazk)
     return false
 }
 
@@ -344,32 +347,34 @@ const saveTask1 = async function(tazk) {
     console.log('saveTask1--1', tazk)
     const data = tazk.children.map((child) => {
         return {
-            "action": child.userAction,
-            "est_MP_TL1_id": child.id,               //TODO
-            "est_MP_TL1_level1taskid": child.id,
-            "est_MP_TL1_level1taskDesc": child.description,
-            "est_MP_TL1_datefrom": child.dateFrom,  //TODO
-            "est_MP_TL1_dateto": child.dateTo,  
-            "est_MP_TL1_unitOfMeasure": "Nos",      //TODO
-            "est_MP_TL1_qty": child.qty
+            "action": child.state,
+            "est_MP_TL1_id": child.info.est_MP_TL1_id,
+            "est_MP_TL1_level1taskid": child.info.est_MP_TL1_level1taskid,
+            "est_MP_TL1_level1taskDesc": child.info.est_MP_TL1_level1taskDesc,
+            "est_MP_TL1_datefrom": child.info.est_MP_TL1_datefrom,
+            "est_MP_TL1_dateto": child.info.est_MP_TL1_dateto,  
+            "est_MP_TL1_unitOfMeasure": child.info.est_MP_TL1_unitOfMeasure,
+            "est_MP_TL1_qty": child.info.est_MP_TL1_qty
         }
     })
     const jsonData = {
         "action": "SAVE",
-        "est_MP_categ_id": tazk.est_MP_categ_id,
+        "est_MP_categ_id": tazk.info.est_MP_categ_id,
         "dataToSave": data
     }
     console.log('saveTask1--2', jsonData)
     try {
-        const response = await http.post("/be/pm/plan/projectL1TaskSave", jsonData)
+        const response = await http.post("/plan/projectL1TaskSave", jsonData)
         if (response.status == 200) {
-            return true
+            if (response.data && response.data.success) {
+                return response.data.response.allCarrierRecord.insertId
+            }
         }
     }
     catch (error) {
         console.log(error)
     }
-    return false
+    return null
 }
 
 const saveTask2 = async function(tazk) {
@@ -390,7 +395,7 @@ const saveTask2 = async function(tazk) {
     }
 
     try {
-        const response = await http.post("/be/pm/plan/projectL2TaskSave", jsonData)
+        const response = await http.post("/plan/projectL2TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -419,7 +424,7 @@ const saveTask3 = async function(tazk) {
     }
 
     try {
-        const response = await http.post("/be/pm/plan/projectL3TaskSave", jsonData)
+        const response = await http.post("/plan/projectL3TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }
@@ -448,7 +453,7 @@ const saveTask4 = async function(tazk) {
     }
 
     try {
-        const response = await http.post("/be/pm/plan/projectL4TaskSave", jsonData)
+        const response = await http.post("/plan/projectL4TaskSave", jsonData)
         if (response.status == 200) {
             return true
         }

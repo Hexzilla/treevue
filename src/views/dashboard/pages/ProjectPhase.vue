@@ -265,7 +265,7 @@ export default {
         getDefaultTask(level) {
             if (level == 0) {
                 return {
-                    live_task: {
+                    info: {
                         ph_phaseNumber: this.phase.phaseNumber,
                         est_MP_categ_id: 0,
                         est_MP_categ_phaseid: 0,
@@ -276,7 +276,17 @@ export default {
                 }
             }
             if (level == 1) {
-
+                return {
+                    info: {
+                        est_MP_TL1_id: 0,
+                        est_MP_TL1_level1taskid: 0,
+                        est_MP_TL1_level1taskDesc: '',
+                        est_MP_TL1_datefrom: '2021-01-01',
+                        est_MP_TL1_dateto: '2021-01-01',
+                        est_MP_TL1_unitOfMeasure: 'Nos',
+                        est_MP_TL1_qty: 0
+                    }
+                }
             }
             //TODO
             return {}
@@ -293,13 +303,14 @@ export default {
         },
 
         findTaskByKey(tasks, ikey) {
-            const item = tasks.find(it => it.ikey == ikey)
-            if (item) {
-                return item
-            }
             for (const i in tasks) {
-                if (tasks[i].children && tasks[i].children.length > 0) {
-                    const result = this.findTaskByKey(tasks[i].children, ikey)
+                const item = tasks[i]
+
+                if (item.ikey == ikey) {
+                    return item
+                }
+                if (item.children && item.children.length > 0) {
+                    const result = this.findTaskByKey(item.children, ikey)
                     if (result) {
                         return result
                     }
@@ -369,7 +380,7 @@ export default {
                 
                 const tazk = this.findProjectTask(this.phase.treeItems, item, item.level)
                 if (tazk) {
-                    item.live_task = tazk
+                    item.info = tazk
                     if (!item.state) {
                         item.state = 'nochange'
                     }
@@ -460,50 +471,6 @@ export default {
             item.qty = event;
         },
 
-        getAddedKeys: function(before, after) {
-            let added = []
-            let modified = this.getModifiedKeys(before, after)
-            for (var i in after) {
-                if (!modified.find(e => e == after[i])) {
-                    added = [...added, after[i]]
-                }
-            }
-            return added;
-        },
-
-        getRemovedKeys: function(before, after) {
-            let removed = []
-            let modified = this.getModifiedKeys(before, after)
-            for (var i in before) {
-                if (!modified.find(e => e == before[i])) {
-                    removed = [...removed, before[i]]
-                }
-            }
-            return removed;
-        },
-
-        getModifiedKeys: function(before, after) {
-            let modified = []
-            for (let i in before) {
-                if (after.find(e => e == before[i])) {
-                    modified = [...modified, before[i]]
-                }
-            }
-            return modified;
-        },
-
-        changeUserAction: function(items, added, removed, modified) {
-            for (let i in items) {
-                if (added.find(e => e == items[i].ikey))
-                    items[i].userAction = "newData";
-                else if (removed.find(e => e == items[i].ikey))
-                    items[i].userAction = "removed";
-                else if (modified.find(e => e == items[i].ikey))
-                    items[i].userAction = "modified";
-                this.changeUserAction(items[i].children, added, removed);
-            }
-        },
-
         getSelectedTasks: function(tasks, keyList) {
             const selectedTrees = tasks.reduce((accumulator, item) => {
                 if (this.existsInKeyList(item, keyList)) {
@@ -523,35 +490,43 @@ export default {
 
         saveTask: async function(index) {
             this.wait = true;
-                        
+
             const items = this.makeStageItems('_')
             for (const i in items) {
                 const item = items[i]
-                console.log('saveTask-1', item)
+                console.log('saveTask_item', item)
 
                 if (item.state == "newData") {
-                    await api.addProjectCategory(this.phase.phase_id, item)
+                    const insertId = await api.addProjectCategory(this.phase.phase_id, item)
+                    if (insertId) {
+                        const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
+                        updateItem.info.est_MP_categ_id = insertId
+                        updateItem.info.est_MP_categ_taskCategoryID = item.id
+                    }
                 }
                 else if (item.state == "removed") {
-                    await api.removeProjectCategory(this.phase.phase_id, item)
+                    const result = await api.removeProjectCategory(this.phase.phase_id, item)
+                    if (result) {
+                        const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
+                        updateItem.state = null
+                    }
+                }
+
+                const children = item.children
+                if (children && children.length > 0) {
+                    await this.saveTaskByLevel(item)
                 }
             }
 
-            // save task
-            // for (var i in items) {
-            //     await this.saveTaskByLevel(items[i], 1);
-            // }
             this.wait = false;
         },
 
-        saveTaskByLevel: async function(tazk, level) {
-            if (tazk.children.length > 0) {
-                await api.saveTaskByLevel(tazk, level);
-
-                for (var i in tazk.children) {
-                    await this.saveTaskByLevel(tazk.children[i], level + 1);
-                }
+        saveTaskByLevel: async function(tazk) {
+            for (const i in tazk.children) {
+                const child = tazk.children[i]
+                child.info.est_MP_TL1_level1taskid = child.id
             }
+            return await api.saveTaskByLevel(tazk, tazk.level)
         }
     }
 };
