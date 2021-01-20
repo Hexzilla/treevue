@@ -36,7 +36,7 @@
                                     <v-text-field
                                         readonly
                                         style="font-size:12px"
-                                        :value="item.dateFrom + ' ~ ' + item.dateTo"
+                                        :value="item.info.est_MP_TL1_datefrom + ' ~ ' + item.info.est_MP_TL1_dateto"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col style="width:200px;padding:0 5px;">
@@ -44,7 +44,7 @@
                                         v-if="item.level > 0"
                                         @change="descriptionChange($event, item)"
                                         label="Description"
-                                        :value="item.description"
+                                        :value="item.info.est_MP_TL1_level1taskDesc"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col style="width: 10px;padding:0 5px;">
@@ -53,7 +53,7 @@
                                         type="number"
                                         label="Qty"
                                         @change="qtyChange($event, item)"
-                                        :value="item.qty"
+                                        :value="item.info.est_MP_TL1_qty"
                                     ></v-text-field>
                                 </v-col>
                             </v-row>
@@ -213,7 +213,6 @@ export default {
         taskToMenu: false,
         taskDialog: false,
         selectedTree: null,
-        phaseIndex: 0, //TODO
         ownKeys: []
     }),
 
@@ -285,6 +284,19 @@ export default {
                         est_MP_TL1_dateto: '2021-01-01',
                         est_MP_TL1_unitOfMeasure: 'Nos',
                         est_MP_TL1_qty: 0
+                    }
+                }
+            }
+            if (level == 2) {
+                return {
+                    info: {
+                        est_MP_TL2_id: 0,
+                        est_MP_TL2_level2taskid: 0,
+                        TL2_name: '',
+                        est_MP_TL2_level2taskDesc: '',
+                        est_MP_TL2_unitOfMeasure: 'Nos',
+                        est_MP_TL1_qty: 0,
+                        children_cnt: 0,
                     }
                 }
             }
@@ -378,18 +390,17 @@ export default {
             const getTreeIdFromLevel = function(item, level) {
                 if (level == 0) return item.est_MP_categ_taskCategoryID
                 if (level == 1) return item.est_MP_TL1_level1taskid
+                if (level == 2) return item.est_MP_TL2_level2taskid
+                if (level == 3) return item.est_MP_TL3_level3taskid
+                if (level == 4) return item.est_MP_TL4_level4taskid
                 return null
             }
 
             for (const i in projectItems) {
                 const item = projectItems[i]
-                console.log('xxxxx1xxxxxxxxxxx', level, item, treeItems)
-
                 const findId = getTreeIdFromLevel(item, level)
-                console.log('xxxxx2xxxxxxxxxxx', findId)
 
                 const treeItem = treeItems.find(it => it.id == findId)
-                console.log('xxxxx3xxxxxxxxxxx', treeItem)
                 if (!treeItem) {
                     //TODO something wrong
                     continue
@@ -505,19 +516,37 @@ export default {
 
                 const children = item.children
                 if (children && children.length > 0) {
-                    await this.saveTaskByLevel(item)
+                    await this.saveTaskByLevel(item, 1)
                 }
             }
 
             this.wait = false;
         },
 
-        saveTaskByLevel: async function(tazk) {
+        saveTaskByLevel: async function(tazk, level) {
             for (const i in tazk.children) {
                 const child = tazk.children[i]
-                child.info.est_MP_TL1_level1taskid = child.id
+                if (level == 1) {
+                    child.info.est_MP_TL1_level1taskid = child.id
+                }
+                else if (level == 2) {
+                    child.info.est_MP_TL2_level2taskid = child.id
+                }
+                else if (level == 3) {
+                    child.info.est_MP_TL3_level3taskid = child.id
+                }
+                else if (level == 4) {
+                    child.info.est_MP_TL4_level4taskid = child.id
+                }
             }
-            return await api.saveTaskByLevel(tazk, tazk.level)
+            await api.saveTaskByLevel(tazk, tazk.level)
+
+            for (const i in tazk.children) {
+                const child = tazk.children[i]
+                if (child.children && child.children.length > 0) {
+                    await this.saveTaskByLevel(child, level+1)
+                }
+            }
         }
     }
 };
