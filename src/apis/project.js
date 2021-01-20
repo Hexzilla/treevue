@@ -230,7 +230,7 @@ const removeProjectCategory = async function(phaseId, category) {
         "action": "EXCLUDE",
         "details": {
             "phase_id": phaseId,
-            "removingCategoryid": category.est_MP_categ_taskCategoryID
+            "removingCategoryid": category.live_task.est_MP_categ_taskCategoryID
         }
     };
     const result = await projectCategory(jsonData)

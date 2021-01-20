@@ -247,7 +247,7 @@ export default {
             console.log('initialize_phase_tree:', this.phase.tree)
 
             this.updateStageItems(this.phase.tree)
-            this.phase.stageItems = this.makeStageItems()
+            this.phase.stageItems = this.makeStageItems('removed')
             console.log('stageItems:', this.phase.stageItems)
         },
 
@@ -328,7 +328,11 @@ export default {
         updateTreeState: function(tasks, keyList) {
             for (const i in tasks) {
                 const item = tasks[i]
+
                 if (!this.existsInKeyList(item, keyList)) {
+                    if (item.state) {
+                        item.state = "removed"
+                    }
                     continue
                 }
                 if (!item.state) {
@@ -342,17 +346,18 @@ export default {
         //----------------------phase.tree state -------------------------------------
 
         //----------------------manage sync data -------------------------------------
-        makeStageItems: function() {
-            return this.getStageItems(this.phase.tree)
+        makeStageItems: function(filter = 'removed') {
+            return this.getStageItems(this.phase.tree, filter)
         },
 
-        getStageItems: function(tasks) {
+        getStageItems: function(tasks, filter) {
+            console.log('get_stage_items', filter)
             const temp = tasks.map((it) => Object.assign({}, it))
-            const result = temp.filter((it) => it.state)
+            const result = temp.filter((it) => it.state && it.state != filter)
             for (const i in result) {
                 const children = result[i].children
                 if (children && children.length > 0) {
-                    result[i].children = this.getStageItems(children)
+                    result[i].children = this.getStageItems(children, filter)
                 }
             }
             return result
@@ -519,7 +524,7 @@ export default {
         saveTask: async function(index) {
             this.wait = true;
                         
-            const items = this.phase.stageItems
+            const items = this.makeStageItems('_')
             for (const i in items) {
                 const item = items[i]
                 console.log('saveTask-1', item)
