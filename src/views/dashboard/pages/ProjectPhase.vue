@@ -9,12 +9,13 @@
             <v-card-title>
                 <v-row>
                     <v-col class="pb-0" md="6">
-                        <p class="mx-4" style="font-size:15px; font-weight:bold">
-                            {{ phaseTitle() }}
+                        <p class="subtitle-1 mb-0">{{ `Phase ${this.phase.phaseNumber}` }}</p>
+                        <p class="title mb-0 text--disabled">
+                            {{ `${this.phase.phase_opendate} ~ ${this.phase.phase_closedate}` }}
                         </p>
                     </v-col>
                     <v-col class="pb-0" md="3">
-                        <v-btn small @click="openTaskDialog()" color="teal">Add Task</v-btn>
+                        <v-btn small @click="openTreeDialog()" color="teal">Add Task</v-btn>
                     </v-col>
                     <v-col class="pb-0" md="3">
                         <v-btn small @click="saveTask()" color="teal">Save Task</v-btn>
@@ -24,6 +25,7 @@
             <v-row>
                 <v-col>
                     <v-treeview
+                        class="mt-5"
                         :open="initiallyOpen"
                         :items="phase.tree"
                         :search="searchName"
@@ -31,44 +33,39 @@
                         item-key="ikey"
                         activatable>
                         <template v-slot:prepend="{ item }">
-                            <v-icon
-                                v-if="item.level == 1"
-                                color="teal"
-                                @click="openTaskDateDialog(item)"
-                            >mdi-calendar</v-icon>
+                            <v-icon v-if="item.level == 0" color="teal">mdi-cube</v-icon>
+                            <v-icon v-if="item.level == 1" color="teal">mdi-numeric-1-box-outline</v-icon>
+                            <v-icon v-if="item.level == 2" color="teal">mdi-numeric-2-box-outline</v-icon>
+                            <v-icon v-if="item.level == 3" color="teal">mdi-numeric-3-box-outline</v-icon>
+                            <v-icon v-if="item.level == 4" color="teal">mdi-numeric-4-box-outline</v-icon>
                         </template>
-                        <template v-slot:append="{ item }">
+                        <template v-slot:label="{ item }">
                             <v-row>
-                                <!-- <v-col style="flex:2;padding:0 5px;" v-if="item.level == 1">
-                                    <v-text-field
-                                        readonly
-                                        style="font-size:12px"
-                                        :value="item.info.est_MP_TL1_datefrom + ' ~ ' + item.info.est_MP_TL1_dateto"
-                                    ></v-text-field>
-                                </v-col> -->
-                                <v-col cols="12" sm="12" md="9" style="padding: 0 5px;">
-                                    <v-text-field
-                                        v-if="item.level > 0"
-                                        label="Description"
-                                        v-model="item.description"
-                                    ></v-text-field>
+                                <v-col cols="12" sm="12" md="8">
+                                    <p class="subtitle-1 mb-0">{{ item.name }}</p>
+                                    <p v-if="item.level > 0" class="title mb-0 text--disabled">
+                                        {{ item.description || 'You can input task description.' }}
+                                    </p>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="3" style="padding: 0 15px;">
-                                    <v-text-field
-                                        v-if="item.level > 0"
-                                        type="number"
-                                        label="Quantity"
-                                        v-model="item.Quantity"
-                                    ></v-text-field>
+                                <v-col cols="12" sm="12" md="4">
+                                    <p v-if="item.level == 1" class="title mb-0 text--disabled">
+                                        {{ `${item.info.est_MP_TL1_datefrom} ~ ${item.info.est_MP_TL1_dateto}` }}
+                                    </p>
                                 </v-col>
                             </v-row>
+                        </template>
+                        <template v-slot:append="{ item }">
+                            <v-icon v-if="item.level > 0"
+                                color="teal"
+                                @click="openTaskEditDialog(item)"
+                            >mdi-square-edit-outline</v-icon>
                         </template>
                     </v-treeview>
                 </v-col>
             </v-row>
         </v-card>
 
-        <!--Add tree dialog-->
+        <!-- Add tree dialog -->
         <v-dialog v-model="treeDialog" max-width="500px">
             <v-card>
                 <v-card-title>
@@ -93,7 +90,7 @@
                     <v-btn color="blue darken-1" text @click="closeTreeDialog">
                         Cancel
                     </v-btn>
-                    <v-btn color="blue darken-1" text @click="saveTree">
+                    <v-btn color="blue darken-1" text @click="saveTreeDialog">
                         Save
                     </v-btn>
                 </v-card-actions>
@@ -107,89 +104,96 @@
                     <span class="headline">Task Date</span>
                 </v-card-title>
                 <v-card-text>
-                    <v-container>
+                    <v-container v-if="editTask != null">
                         <v-row>
-                            <v-menu
-                                ref="taskFromMenu"
-                                v-model="taskFromMenu"
-                                :close-on-content-click="false"
-                                :return-value.sync="taskFromDate"
-                                transition="scale-transition"
-                                offset-y
-                                min-width="auto"
-                            >
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field
-                                        v-model="taskFromDate"
-                                        label="Date From"
-                                        prepend-icon="mdi-calendar"
-                                        readonly
-                                        v-bind="attrs"
-                                        v-on="on"
-                                    ></v-text-field>
-                                </template>
-                                <v-date-picker v-model="taskFromDate" no-title scrollable>
-                                    <v-spacer></v-spacer>
-                                    <v-btn text color="primary" @click="taskFromMenu = false">
-                                        Cancel
-                                    </v-btn>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="$refs.taskFromMenu.save(taskFromDate)"
-                                    >
-                                        OK
-                                    </v-btn>
-                                </v-date-picker>
-                            </v-menu>
+                            <v-col cols="12" sm="12" md="12">
+                                <v-text-field
+                                    v-model="editTask.name"
+                                    prepend-icon="mdi-book-lock-outline"
+                                    label="Name"
+                                    readonly
+                                ></v-text-field>
+                            </v-col>
                         </v-row>
                         <v-row>
-                            <v-menu
-                                ref="taskToMenu"
-                                v-model="taskToMenu"
-                                :close-on-content-click="false"
-                                :return-value.sync="taskToDate"
-                                transition="scale-transition"
-                                offset-y
-                                min-width="auto"
-                            >
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field
-                                        v-model="taskToDate"
-                                        label="Date To"
-                                        prepend-icon="mdi-calendar"
-                                        readonly
-                                        v-bind="attrs"
-                                        v-on="on"
-                                    ></v-text-field>
-                                </template>
-                                <v-date-picker v-model="taskToDate" no-title scrollable>
-                                    <v-spacer></v-spacer>
-                                    <v-btn text color="primary" @click="taskToMenu = false">
-                                        Cancel
-                                    </v-btn>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="$refs.taskToMenu.save(taskToDate)"
-                                    >
-                                        OK
-                                    </v-btn>
-                                </v-date-picker>
-                            </v-menu>
+                            <v-col cols="12" sm="12" md="12">
+                                <v-text-field
+                                    v-model="editTask.description"
+                                    prepend-icon="mdi-alpha-d-circle-outline"
+                                    label="Description"
+                                ></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col cols="12" sm="12" md="6">
+                                <v-menu
+                                    ref="taskFromMenu"
+                                    v-model="taskFromMenu"
+                                    :close-on-content-click="false"
+                                    :return-value.sync="editTask.datefrom"
+                                    transition="scale-transition"
+                                    offset-y
+                                    min-width="auto"
+                                >
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-text-field
+                                            v-model="editTask.datefrom"
+                                            label="Date From"
+                                            prepend-icon="mdi-calendar"
+                                            readonly
+                                            v-bind="attrs"
+                                            v-on="on"
+                                        ></v-text-field>
+                                    </template>
+                                    <v-date-picker v-model="editTask.datefrom" no-title scrollable>
+                                        <v-spacer></v-spacer>
+                                        <v-btn text color="primary" @click="taskFromMenu = false">Cancel</v-btn>
+                                        <v-btn text color="primary" @click="$refs.taskFromMenu.save(editTask.datefrom)">OK</v-btn>
+                                    </v-date-picker>
+                                </v-menu>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="6">
+                                <v-menu
+                                    ref="taskToMenu"
+                                    v-model="taskToMenu"
+                                    :close-on-content-click="false"
+                                    :return-value.sync="editTask.dateto"
+                                    transition="scale-transition"
+                                    offset-y
+                                    min-width="auto">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-text-field
+                                            v-model="editTask.dateto"
+                                            label="Date To"
+                                            prepend-icon="mdi-calendar"
+                                            readonly
+                                            v-bind="attrs"
+                                            v-on="on"
+                                        ></v-text-field>
+                                    </template>
+                                    <v-date-picker 
+                                        v-model="editTask.dateto" 
+                                        no-title 
+                                        scrollable>
+                                        <v-spacer></v-spacer>
+                                        <v-btn text color="primary" @click="taskToMenu = false">Cancel</v-btn>
+                                        <v-btn text color="primary" @click="$refs.taskToMenu.save(editTask.dateto)">OK</v-btn>
+                                    </v-date-picker>
+                                </v-menu>
+                            </v-col>
                         </v-row>
                     </v-container>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="blue darken-1" text @click="closeTaskDateDialog">
+                    <v-btn color="blue darken-1" text @click="closeTaskEditDialog">
                         Cancel
                     </v-btn>
                     <v-btn
                         :disabled="taskValid"
                         color="blue darken-1"
                         text
-                        @click="addTaskDate"
+                        @click="saveTaskEditDialog"
                     >
                         Save
                     </v-btn>
@@ -211,16 +215,14 @@ export default {
     data: () => ({
         wait: false,
         treeDialog: false,
-        taskDialog: false,
         initiallyOpen: ["public"],
         dialogTreeSelected: [],
-        taskFromDate: "",
         taskFromMenu: false,
-        taskToDate: "",
         taskToMenu: false,
         taskDialog: false,
-        selectedTree: null,
+        editTask: null,
         searchName: "1",
+        unitOfMeasureItems: ['Nos', 'Item'],
     }),
 
     computed: {
@@ -228,12 +230,13 @@ export default {
             return (item, search, textKey) => (item.state && item.state != 'remove')
         },
         taskValid() {
-            if (this.taskFromDate && this.taskToDate) return false;
             return true;
         }
     },
 
     created: function() {
+        
+        
         this.initialize()
     },
 
@@ -244,23 +247,9 @@ export default {
 
     methods: {
         phaseTitle() {
-            return `Phase ${this.phase.phaseNumber} (${this.phase.phase_opendate} ~ ${this.phase.phase_closedate})`
+            // (${this.phase.phase_opendate} ~ ${this.phase.phase_closedate})
+            return `Phase ${this.phase.phaseNumber}`
         },
-
-        // getDescription(item) {
-        //     if (item.level == 1) {
-        //         return item.info.est_MP_TL1_level1taskDesc
-        //     }
-        //     else if (item.level == 2) {
-        //         return item.info.est_MP_TL2_level2taskDesc
-        //     }
-        //     else if (item.level == 3) {
-        //         return item.info.est_MP_TL3_level3taskDesc
-        //     }
-        //     else if (item.level == 4) {
-        //         return item.info.est_MP_TL4_level4taskDesc
-        //     }
-        // },
 
         initialize() {
             if (!this.phase.serverItems) {
@@ -287,10 +276,12 @@ export default {
                     name: item.name, 
                     ikey: item.ikey,
                     level: item.level,
-                    description: '',
+                    datefrom: moment().format("YYYY-MM-DD"),
+                    dateto: moment().add(10, 'days').format("YYYY-MM-DD"),
+                    description: '', //'You can input task description.',
                     unitOfMeasure: 'Nos',
                     quantity: 0,
-                    children: [] 
+                    children: [],
                 }
                 const serverItem = this.findServerItem(item)
                 if (serverItem) {
@@ -405,11 +396,11 @@ export default {
         //----------------------mangae task list -------------------------------------
 
         //----------------------phase.tree state -------------------------------------
-        getInterestedTasks: function() {
+        getInterestedItems: function() {
             return this.phase.tree.filter(it => it.state && it.state != 'remove')
         },
 
-        updateInterestedTasks: function(tasks, keyList) {
+        updateInterestedItems: function(tasks, keyList) {
             for (const i in tasks) {
                 const item = tasks[i]
 
@@ -432,7 +423,7 @@ export default {
                     }
                 }
                 if (item.children && item.children.length > 0) {
-                    this.updateInterestedTasks(item.children, keyList)
+                    this.updateInterestedItems(item.children, keyList)
                 }
             }
         },
@@ -525,10 +516,10 @@ export default {
             return result
         },
 
-        openTaskDialog: function() {
+        openTreeDialog: function() {
             this.treeDialog = true;
 
-            const selectedTasks = this.getInterestedTasks()
+            const selectedTasks = this.getInterestedItems()
             this.dialogTreeSelected = this.getKeyList(selectedTasks);
         },
 
@@ -536,10 +527,10 @@ export default {
             this.treeDialog = false;
         },
         
-        saveTree: function() {
+        saveTreeDialog: function() {
             this.treeDialog = false
-            console.log('saveTree.selected:', this.dialogTreeSelected);
-            this.updateInterestedTasks(this.phase.tree, this.dialogTreeSelected)
+            console.log('saveTreeDialog.selected:', this.dialogTreeSelected);
+            this.updateInterestedItems(this.phase.tree, this.dialogTreeSelected)
             this.refreshTree()
         },
 
@@ -547,53 +538,46 @@ export default {
             this.searchName = (parseInt(this.searchName) + 1).toString()
         },
 
-        openTaskDateDialog: function(item) {
+        openTaskEditDialog: function(item) {
             console.log('open_task_date_dialog', item)
-            this.taskFromDate = item.info.est_MP_TL1_datefrom
-            this.taskToDate = item.info.est_MP_TL1_dateto
             this.taskDialog = true
-            this.selectedTree = item
+            this.editTask = item
+            console.log('selected.edittask', this.editTask)
         },
 
-        closeTaskDateDialog: function() {
+        closeTaskEditDialog: function() {
             this.taskDialog = false;
         },
 
-        addTaskDate: function() {
-            this.selectedTree.dateFrom = this.taskFromDate;
-            this.selectedTree.dateTo = this.taskToDate;
+        saveTaskEditDialog: function() {
             this.taskDialog = false;
         },
 
-        // descriptionChange: function(event, item) {
-        //     item.description = event;
-        // },
-
-        qtyChange: function(event, item) {
-            item.qty = event;
+        onDescriptionChanged: function(event, item) {
+            item.description = event
+            if (item.state != 'newData') {
+                item.state = 'modified'
+            }
         },
 
-        // getSelectedTasks: function(tasks, keyList) {
-        //     const selectedTrees = tasks.reduce((accumulator, item) => {
-        //         if (this.existsInKeyList(item, keyList)) {
-        //             accumulator.push(item);
-        //         }
-        //         return accumulator;
-        //     }, []);
+        onUnitOfMeasureChanged: function(event, item) {
+            console.log('~~~~~~~~~~~~~', event)
+            item.unitOfMeasure = event
+            if (item.state != 'newData') {
+                item.state = 'modified'
+            }
+        },
 
-        //     for (const i in selectedTrees) {
-        //         const _tazk = selectedTrees[i]
-        //         if (_tazk.children && _tazk.children.length > 0) {
-        //                 _tazk.children = this.getSelectedTasks(_tazk.children, keyList)
-        //         }
-        //     }
-        //     return selectedTrees
-        // },
+        onQuantityChanged: function(event, item) {
+            item.quantity = event
+            if (item.state != 'newData') {
+                item.state = 'modified'
+            }
+        },
 
         saveTask: async function(index) {
-            console.log('------------', this.phase.tree)
+            console.log('~~~~~~~~~~~~~', this.phase.tree)
             return
-
             // this.wait = true
 
             // const items = this.makeStageItems('NoFilter')

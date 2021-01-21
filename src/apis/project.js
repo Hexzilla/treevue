@@ -375,12 +375,12 @@ const saveTask1 = async function(tazk, state) {
         return {
             "action": child.state,
             "est_MP_TL1_id": child.info.est_MP_TL1_id,
-            "est_MP_TL1_level1taskid": child.info.est_MP_TL1_level1taskid,
-            "est_MP_TL1_level1taskDesc": child.description, //info.est_MP_TL1_level1taskDesc,
-            "est_MP_TL1_datefrom": child.info.est_MP_TL1_datefrom,
-            "est_MP_TL1_dateto": child.info.est_MP_TL1_dateto,  
-            "est_MP_TL1_unitOfMeasure": child.unitOfMeasure, //child.info.est_MP_TL1_unitOfMeasure,
-            "est_MP_TL1_qty": child.quantity, //child.info.est_MP_TL1_qty
+            "est_MP_TL1_level1taskid": child.id,                    //child.info.est_MP_TL1_level1taskid,
+            "est_MP_TL1_level1taskDesc": child.description,         //info.est_MP_TL1_level1taskDesc,
+            "est_MP_TL1_datefrom": child.datefrom,                  //child.info.est_MP_TL1_datefrom,
+            "est_MP_TL1_dateto": child.dateto,                      //child.info.est_MP_TL1_dateto,  
+            "est_MP_TL1_unitOfMeasure": child.unitOfMeasure,        //child.info.est_MP_TL1_unitOfMeasure,
+            "est_MP_TL1_qty": child.quantity,                       //child.info.est_MP_TL1_qty
         }
     })
     const postData = data.filter(it => it != null)
