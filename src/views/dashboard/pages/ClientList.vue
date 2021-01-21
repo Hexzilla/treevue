@@ -49,6 +49,7 @@
                           label="Code"
                           class="input-uppercase"
                           required
+                          @keydown.space.prevent
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
@@ -113,6 +114,7 @@
                 class="input-uppercase"
                 single-line
                 autofocus
+                @keydown.space.prevent
               ></v-text-field>
             </template>
           </v-edit-dialog>
@@ -172,7 +174,6 @@ export default {
         align: "start",
         value: "code",
         width: "30%",
-        color: "primary--text",
       },
       { text: "Name", value: "name" },
       { text: "Actions", align: "right", value: "actions", sortable: false },
@@ -196,17 +197,19 @@ export default {
     codeRules() {
       return [
         (v) => !!v || "Code is required",
+        (v) => /[a-zA-Z0-9]+$/.test(v) || 'Code must only contain letters',
         (v) =>
-        (v && v.length <= this.maxCodeLength) ||
-        `Code must be less than ${this.maxCodeLength} characters`,
+          (v && v.length <= this.maxCodeLength) ||
+          `Code must be less than ${this.maxCodeLength} characters`,
       ];
     },
     nameRules() {
       return [
         (v) => !!v || "Name is required",
+        (v) => v.trim().length > 0 || "Name is required",
         (v) =>
-        (v && v.length <= this.maxNameLength) ||
-        `Name must be less than ${this.maxNameLength} characters`,
+          (v && v.length <= this.maxNameLength) ||
+          `Name must be less than ${this.maxNameLength} characters`,
       ];
     },
   },
@@ -227,7 +230,7 @@ export default {
   methods: {
     async initialize() {
       this.loading = true
-      this.clients = await api.findAll();
+      this.clients = await api.findAll()
       this.loading = false;
     },
 
@@ -276,6 +279,7 @@ export default {
     },
 
     async updateItemCode(item) {
+      this.inlineEditedCode = this.inlineEditedCode.trim().toUpperCase()
       console.log("updateItemCode", this.inlineEditedCode)
       if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length <= this.maxCodeLength) {
         this.loading = true
@@ -292,6 +296,7 @@ export default {
     },
 
     async updateItemName(item) {
+      this.inlineEditedName = this.inlineEditedName.trim()
       console.log("updateItemName", this.inlineEditedName)
       if (this.inlineEditedName.length > 0 && this.inlineEditedName.length <= this.maxNameLength) {
         this.loading = true
@@ -313,6 +318,9 @@ export default {
           return;
       }	
 
+      this.editedItem.code = this.editedItem.code.trim().toUpperCase()
+      this.editedItem.name = this.editedItem.name.trim()
+      
       const selectedIndex = this.editedIndex
       const item = Object.assign({}, this.editedItem)
       this.close();

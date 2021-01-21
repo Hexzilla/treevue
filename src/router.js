@@ -29,9 +29,9 @@ export default new Router({
           component: () => import('@/views/dashboard/pages/CountryList'),
         },
         {
-          name: 'Destination',
+          name: 'Designation',
           path: 'pages/designation',
-          component: () => import('@/views/dashboard/pages/Destination'),
+          component: () => import('@/views/dashboard/pages/Designation'),
         },
         {
           name: 'Role List',

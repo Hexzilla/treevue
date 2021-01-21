@@ -25,7 +25,9 @@
                   v-model="project.prj_code"
                   :rules="projectCodeRules"
                   label="Code"
+                  class="input-uppercase"
                   required
+                  @keydown.space.prevent
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -143,6 +145,7 @@ export default {
     projectNameRules() {
       return [
         (v) => !!v || "Name is required",
+        (v) => v.trim().length > 0 || "Name is required",
         (v) =>
           (v && v.length <= this.maxNameLength) ||
           `Name must be less than ${this.Length} characters`,
@@ -151,6 +154,7 @@ export default {
     projectCodeRules() {
       return [
         (v) => !!v || "Code is required",
+        (v) => /[a-zA-Z0-9]+$/.test(v) || 'Code must only contain letters',
         (v) =>
           (v && v.length <= this.maxCodeLength) ||
           `Code must be less than ${this.Length} characters`,
@@ -170,10 +174,13 @@ export default {
 
     save: function() {
       if (this.$refs.projectForm.validate()) {
+        this.project.prj_code = this.project.prj_code.trim().toUpperCase();
+
         this.$emit('save', {
           project: Object.assign({}, this.project),
           edit: this.edit,
         })
+
         this.reset()
       }
     },

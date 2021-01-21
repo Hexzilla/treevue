@@ -162,6 +162,7 @@ export default {
     nameRules() {
       return [
         (v) => !!v || "Name is required",
+        (v) => v.trim().length > 0 || "Name is required",
         (v) =>
         (v && v.length <= this.maxNameLength) ||
         `Name must be less than ${this.maxNameLength} characters`,
@@ -185,7 +186,7 @@ export default {
   methods: {
     async initialize() {
       this.loading = true
-      this.clients = await api.findAll();
+      this.clients = await api.findAll()
       this.loading = false;
     },
 
@@ -234,6 +235,7 @@ export default {
     },
 
     async updateItemName(item) {
+      this.inlineEditedName = this.inlineEditedName.trim()
       console.log("updateItemName", this.inlineEditedName)
       if (this.inlineEditedName.length > 0 && this.inlineEditedName.length <= this.maxNameLength) {
         this.loading = true
@@ -255,6 +257,8 @@ export default {
           return;
       }	
 
+      this.editedItem.name = this.editedItem.name.trim()
+      
       const selectedIndex = this.editedIndex
       const item = Object.assign({}, this.editedItem)
       this.close();

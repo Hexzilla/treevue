@@ -46,9 +46,10 @@
                           v-model="editedItem.ISOcode"
                           :counter="maxCodeLength"
                           :rules="codeRules"
-                          label="Code"
+                          label="ISOCode"
                           class="input-uppercase"
                           required
+                          @keydown.space.prevent
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
@@ -104,7 +105,7 @@
           <v-edit-dialog large @save="updateItemCode(props.item)" @open="inlineEditedCode = props.item.ISOcode">
             {{ props.item.ISOcode.toUpperCase() }}
             <template v-slot:input>
-              <div class="mt-4 title">Update Code</div>
+              <div class="mt-4 title">Update ISOCode</div>
               <v-text-field
                 v-model="inlineEditedCode"
                 :rules="codeRules"
@@ -113,6 +114,7 @@
                 class="input-uppercase"
                 single-line
                 autofocus
+                @keydown.space.prevent
               ></v-text-field>
             </template>
           </v-edit-dialog>
@@ -194,15 +196,17 @@ export default {
     },
     codeRules() {
       return [
-        (v) => !!v || "Code is required",
+        (v) => !!v || "ISOCode is required",
+        (v) => /[a-zA-Z0-9]+$/.test(v) || 'ISOCode must only contain letters',
         (v) =>
         (v && v.length <= this.maxCodeLength) ||
-        `Code must be less than ${this.maxCodeLength} characters`,
+        `ISOCode must be less than ${this.maxCodeLength} characters`,
       ];
     },
     nameRules() {
       return [
         (v) => !!v || "Name is required",
+        (v) => v.trim().length > 0 || "Name is required",
         (v) =>
         (v && v.length <= this.maxNameLength) ||
         `Name must be less than ${this.maxNameLength} characters`,
@@ -275,11 +279,13 @@ export default {
     },
 
     async updateItemCode(item) {
+      this.inlineEditedCode = this.inlineEditedCode.trim().toUpperCase()
       console.log("updateItemCode", this.inlineEditedCode)
       if (this.inlineEditedCode.length > 0 && this.inlineEditedCode.length < this.maxCodeLength) {
         this.loading = true
         {
-          const updatedItem = Object.assign({}, item, {code: this.inlineEditedCode})
+          const updatedItem = Object.assign({}, item, {ISOcode: this.inlineEditedCode})
+          console.log("updatedItem", updatedItem)
           const success = await api.update(updatedItem) 
           if (success) {
             Object.assign(item, updatedItem);
@@ -291,6 +297,7 @@ export default {
     },
 
     async updateItemName(item) {
+      this.inlineEditedName = this.inlineEditedName.trim()
       console.log("updateItemName", this.inlineEditedName)
       if (this.inlineEditedName.length > 0 && this.inlineEditedName.length < this.maxNameLength) {
         this.loading = true
@@ -312,6 +319,9 @@ export default {
           return;
       }	
 
+      this.editedItem.ISOcode = this.editedItem.ISOcode.trim().toUpperCase()
+      this.editedItem.name = this.editedItem.name.trim()
+      
       const selectedIndex = this.editedIndex
       const item = Object.assign({}, this.editedItem)
       this.close();
