@@ -265,7 +265,13 @@ export default {
                 if (result) {
                     const updated = await api.getProjectWithPhase(this.selectedProject.prj_code)
                     if (updated && updated.length > 0) {
-                        this.selectedProject.phases = updated[0].phases
+                        const addedPhase = updated[0].phases.find(it => it.phaseNumber == number)
+                        if (!addedPhase) {
+                            console.log('Someting wrong [AddPhase]');
+                        }
+                        else {
+                            this.selectedProject.phases.push(addedPhase)
+                        }
                     }
                 }
                 this.wait = false
