@@ -70,91 +70,19 @@
                 </v-card-title>
                 <v-card-text>
                     <v-container>
-                        <v-row>            
-                            <v-menu
-                                ref="phaseFromMenu"
-                                v-model="phaseFromMenu"
-                                :close-on-content-click="false"
-                                :return-value.sync="phaseFromDate"
-                                transition="scale-transition"
-                                offset-y
-                                min-width="auto"
-                            >
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field
-                                        v-model="phaseFromDate"
-                                        label="Date From"
-                                        prepend-icon="mdi-calendar"
-                                        readonly
-                                        v-bind="attrs"
-                                        v-on="on"
-                                    ></v-text-field>
-                                </template>
-                                <v-date-picker
-                                    v-model="phaseFromDate"
-                                    no-title
-                                    scrollable
-                                >
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="phaseFromMenu = false"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="$refs.phaseFromMenu.save(phaseFromDate)"
-                                    >
-                                        OK
-                                    </v-btn>
-                                </v-date-picker>
-                            </v-menu>
+                        <v-row>
+                            <DatePicker
+                                textName="Date From"
+                                :date="phaseFromDate"
+                                :submit="(date) => phaseFromDate = date"
+                            ></DatePicker>
                         </v-row>
-                        <v-row>            
-                            <v-menu
-                                ref="phaseToMenu"
-                                v-model="phaseToMenu"
-                                :close-on-content-click="false"
-                                :return-value.sync="phaseToDate"
-                                transition="scale-transition"
-                                offset-y
-                                min-width="auto"
-                            >
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field
-                                        v-model="phaseToDate"
-                                        label="Date To"
-                                        prepend-icon="mdi-calendar"
-                                        readonly
-                                        v-bind="attrs"
-                                        v-on="on"
-                                    ></v-text-field>
-                                </template>
-                                <v-date-picker
-                                    v-model="phaseToDate"
-                                    no-title
-                                    scrollable
-                                >
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="phaseToMenu = false"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                    <v-btn
-                                        text
-                                        color="primary"
-                                        @click="$refs.phaseToMenu.save(phaseToDate)"
-                                    >
-                                        OK
-                                    </v-btn>
-                                </v-date-picker>
-                            </v-menu>
+                        <v-row>
+                            <DatePicker
+                                textName="Date From"
+                                :date="phaseToDate"
+                                :submit="(date) => phaseToDate = date"
+                            ></DatePicker>
                         </v-row>
                     </v-container>
                 </v-card-text>
@@ -177,12 +105,14 @@ import client_api from "@/apis/client.js";
 import ProjectDetails from './ProjectDetails'
 import AddProjectDialog from './AddProjectDialog'
 import ProjectPhase from './ProjectPhase'
+import DatePicker from './DatePicker'
 
 export default {
     components: {
         ProjectDetails,
         AddProjectDialog,
         ProjectPhase,
+        DatePicker,
     },
 
     data: () => ({
@@ -301,18 +231,18 @@ export default {
                 prj_name: '',
                 prj_code: '',
                 cl_id: 0,
-                prj_presalesopendate:     moment().format("YYYY-MM-DD"),
-                prj_presalesclosedate:    moment().add(10, 'days').format("YYYY-MM-DD"),
-                prj_executionopendate:    moment().format("YYYY-MM-DD"),
-                prj_executionclosedate: moment().add(10, 'days').format("YYYY-MM-DD"),
-                prj_warrantyopendate:     moment().format("YYYY-MM-DD"),
-                prj_warrantyclosedate:    moment().add(10, 'days').format("YYYY-MM-DD"),
+                prj_presalesopendate:     '', //moment().format("YYYY-MM-DD"),
+                prj_presalesclosedate:    '',
+                prj_executionopendate:    '',
+                prj_executionclosedate:   '',
+                prj_warrantyopendate:     '',
+                prj_warrantyclosedate:    '',
             }
         },
 
         phase_addButtonClicked: function() {
-            this.phaseFromDate = moment().format("YYYY-MM-DD")
-            this.phaseToDate = moment().add(10, 'days').format("YYYY-MM-DD")
+            this.phaseFromDate = ''
+            this.phaseToDate = ''
             this.phaseDialog = true
         },
 

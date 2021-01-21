@@ -8,7 +8,7 @@
         <v-container>
           <v-form ref="projectForm" lazy-validation>
             <v-row>
-              <v-col>
+              <v-col cols="12" sm="12" md="12">
                 <v-text-field
                   :counter="maxNameLength"
                   v-model="project.prj_name"
@@ -17,7 +17,9 @@
                   required
                 ></v-text-field>
               </v-col>
-              <v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12" md="12">
                 <v-text-field
                   :counter="maxCodeLength"
                   v-model="project.prj_code"
@@ -28,7 +30,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col>
+              <v-col cols="12" sm="12" md="12">
                 <v-select
                   v-model="project.cl_id"
                   :items="clientList"
@@ -41,266 +43,50 @@
             </v-row>
             <v-row>
               <v-col>
-                <v-menu
-                  ref="preSaleFromMenu"
-                  v-model="preSaleFromMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_presalesopendate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_presalesopendate"
-                      label="Pre sale date from"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_presalesopendate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="preSaleFromMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.preSaleFromMenu.save(project.prj_presalesopendate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Pre sale date from"
+                  :date="this.project.prj_presalesopendate"
+                  :submit="(date) => this.project.prj_presalesopendate = date"
+                ></DatePicker>
               </v-col>
               <v-col>
-                <v-menu
-                  ref="preSaleToMenu"
-                  v-model="preSaleToMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_presalesclosedate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_presalesclosedate"
-                      label="Pre sale date to"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_presalesclosedate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="preSaleToMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.preSaleToMenu.save(project.prj_presalesclosedate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Pre sale date to"
+                  :date="this.project.prj_presalesclosedate"
+                  :submit="(date) => this.project.prj_presalesclosedate = date"
+                ></DatePicker>
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-menu
-                  ref="billingFromMenu"
-                  v-model="billingFromMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_executionopendate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_executionopendate"
-                      label="Billing Date From"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_executionopendate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="billingFromMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.billingFromMenu.save(project.prj_executionopendate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Billing date from"
+                  :date="this.project.prj_executionopendate"
+                  :submit="(date) => this.project.prj_executionopendate = date"
+                ></DatePicker>
               </v-col>
               <v-col>
-                <v-menu
-                  ref="billingToMenu"
-                  v-model="billingToMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_executionclosedate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_executionclosedate"
-                      label="Billing date to"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_executionclosedate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="billingToMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.billingToMenu.save(project.prj_executionclosedate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Billing date to"
+                  :date="this.project.prj_executionclosedate"
+                  :submit="(date) => this.project.prj_executionclosedate = date"
+                ></DatePicker>
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-menu
-                  ref="warrantyFromMenu"
-                  v-model="warrantyFromMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_warrantyopendate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_warrantyopendate"
-                      label="Warranty date from"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_warrantyopendate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="warrantyFromMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.warrantyFromMenu.save(project.prj_warrantyopendate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Warranty date from"
+                  :date="this.project.prj_warrantyopendate"
+                  :submit="(date) => this.project.prj_warrantyopendate = date"
+                ></DatePicker>
               </v-col>
               <v-col>
-                <v-menu
-                  ref="warrantyToMenu"
-                  v-model="warrantyToMenu"
-                  :close-on-content-click="false"
-                  :return-value.sync="project.prj_warrantyclosedate"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="project.prj_warrantyclosedate"
-                      label="Picker in warrantyToMenu"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="project.prj_warrantyclosedate"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="warrantyToMenu = false"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      text
-                      color="primary"
-                      @click="$refs.warrantyToMenu.save(project.prj_warrantyclosedate)"
-                    >
-                      OK
-                    </v-btn>
-                  </v-date-picker>
-                </v-menu>
+                <DatePicker
+                  textName="Warranty date to"
+                  :date="this.project.prj_warrantyclosedate"
+                  :submit="(date) => this.project.prj_warrantyclosedate = date"
+                ></DatePicker>
               </v-col>
             </v-row>
           </v-form>
@@ -315,12 +101,17 @@
 </template>
 
 <script>
+import DatePicker from './DatePicker'
+
 export default {
   name: 'AddProjectDialog',
   props: {
     clients: Array,
     project: Object,
     edit: Boolean,
+  },
+  components: {
+    DatePicker,
   },
 
   data: () => ({
@@ -369,7 +160,7 @@ export default {
       return [
         (v) => !!v || "Client is required"
       ];
-    },
+    }
   },
 
   methods: {

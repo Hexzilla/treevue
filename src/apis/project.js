@@ -251,7 +251,7 @@ const removeProjectCategory = async function(phaseId, category) {
 const projectCategory = async function(data) {
     try {
         const response = await http.post("/plan/projectCategory", data)
-        console.log('get_project_category', response.status)
+        //console.log('get_project_category', response.status)
         if (response.status == 200) {
             return response.data
         }

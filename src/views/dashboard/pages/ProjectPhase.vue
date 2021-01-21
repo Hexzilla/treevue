@@ -276,8 +276,8 @@ export default {
                     name: item.name, 
                     ikey: item.ikey,
                     level: item.level,
-                    datefrom: moment().format("YYYY-MM-DD"),
-                    dateto: moment().add(10, 'days').format("YYYY-MM-DD"),
+                    datefrom: '',
+                    dateto: '',
                     description: '', //'You can input task description.',
                     unitOfMeasure: 'Nos',
                     quantity: 0,
@@ -310,8 +310,8 @@ export default {
                     est_MP_TL1_id: 0,
                     est_MP_TL1_level1taskid: 0,
                     est_MP_TL1_level1taskDesc: '',
-                    est_MP_TL1_datefrom: moment().format("YYYY-MM-DD"),
-                    est_MP_TL1_dateto: moment().add(10, 'days').format("YYYY-MM-DD"),
+                    est_MP_TL1_datefrom: '',
+                    est_MP_TL1_dateto: '',
                     est_MP_TL1_unitOfMeasure: 'Nos',
                     est_MP_TL1_qty: 0
                 }
