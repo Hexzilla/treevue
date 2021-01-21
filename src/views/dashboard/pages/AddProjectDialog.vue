@@ -49,6 +49,7 @@
                   textName="Pre sale date from"
                   :date="this.project.prj_presalesopendate"
                   :submit="(date) => this.project.prj_presalesopendate = date"
+                  :endDate="this.project.prj_presalesclosedate"
                 ></DatePicker>
               </v-col>
               <v-col>
@@ -56,6 +57,7 @@
                   textName="Pre sale date to"
                   :date="this.project.prj_presalesclosedate"
                   :submit="(date) => this.project.prj_presalesclosedate = date"
+                  :startDate="this.project.prj_presalesopendate"
                 ></DatePicker>
               </v-col>
             </v-row>
@@ -65,6 +67,7 @@
                   textName="Billing date from"
                   :date="this.project.prj_executionopendate"
                   :submit="(date) => this.project.prj_executionopendate = date"
+                  :endDate="this.project.prj_executionclosedate"
                 ></DatePicker>
               </v-col>
               <v-col>
@@ -72,6 +75,7 @@
                   textName="Billing date to"
                   :date="this.project.prj_executionclosedate"
                   :submit="(date) => this.project.prj_executionclosedate = date"
+                  :startDate="this.project.prj_executionopendate"
                 ></DatePicker>
               </v-col>
             </v-row>
@@ -81,6 +85,7 @@
                   textName="Warranty date from"
                   :date="this.project.prj_warrantyopendate"
                   :submit="(date) => this.project.prj_warrantyopendate = date"
+                  :endDate="this.project.prj_warrantyclosedate"
                 ></DatePicker>
               </v-col>
               <v-col>
@@ -88,6 +93,7 @@
                   textName="Warranty date to"
                   :date="this.project.prj_warrantyclosedate"
                   :submit="(date) => this.project.prj_warrantyclosedate = date"
+                  :startDate="this.project.prj_warrantyopendate"
                 ></DatePicker>
               </v-col>
             </v-row>

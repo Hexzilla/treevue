@@ -75,6 +75,7 @@
                                 textName="Date From"
                                 :date="phaseFromDate"
                                 :submit="(date) => phaseFromDate = date"
+                                :endDate="phaseToDate"
                             ></DatePicker>
                         </v-row>
                         <v-row>
@@ -82,6 +83,7 @@
                                 textName="Date From"
                                 :date="phaseToDate"
                                 :submit="(date) => phaseToDate = date"
+                                :startDate="phaseFromDate"
                             ></DatePicker>
                         </v-row>
                     </v-container>
