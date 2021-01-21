@@ -161,6 +161,7 @@
 </template>
 
 <script>
+import moment from 'moment'
 import api from "@/apis/project.js";
 import client_api from "@/apis/client.js";
 import ProjectDetails from './ProjectDetails'
@@ -195,9 +196,9 @@ export default {
     allTreeKeys:[],
     phaseDialog: false,
     selectedTree: null,
-    phaseFromDate: "",
+    phaseFromDate: '',
     phaseFromMenu: false,
-    phaseToDate: "",
+    phaseToDate: '',
     phaseToMenu: false,
     taskFromDate: "",
     taskFromMenu: false,
@@ -314,19 +315,18 @@ export default {
         prj_name: '',
         prj_code: '',
         cl_id: 0,
-        prj_presalesopendate: '2021-01-11',
-        prj_presalesclosedate: '2021-03-01',
-        prj_executionopendate: '2021-01-12',
-        prj_executionclosedate: '2021-03-01',
-        prj_warrantyopendate: '2021-01-13',
-        prj_warrantyclosedate: '2021-01-01',
+        prj_presalesopendate:   moment().format("YYYY-MM-DD"),
+        prj_presalesclosedate:  moment().add(10, 'days').format("YYYY-MM-DD"),
+        prj_executionopendate:  moment().format("YYYY-MM-DD"),
+        prj_executionclosedate: moment().add(10, 'days').format("YYYY-MM-DD"),
+        prj_warrantyopendate:   moment().format("YYYY-MM-DD"),
+        prj_warrantyclosedate:  moment().add(10, 'days').format("YYYY-MM-DD"),
       }
     },
 
     phase_addButtonClicked: function() {
-      console.log('phase_addButtonClicked')
-      this.phaseFromDate = ""
-      this.phaseToDate = ""
+      this.phaseFromDate = moment().format("YYYY-MM-DD")
+      this.phaseToDate = moment().add(10, 'days').format("YYYY-MM-DD")
       this.phaseDialog = true
     },
 

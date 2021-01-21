@@ -32,7 +32,9 @@
                 <v-select
                   v-model="project.cl_id"
                   :items="clientList"
+                  :rules="clientSelectRules"
                   label="Client"
+                  required
                   dense
                 ></v-select>
               </v-col>
@@ -323,7 +325,7 @@ export default {
 
   data: () => ({
     clientList: [],
-    maxNameLength: 50,
+    maxNameLength: 200,
     maxCodeLength: 20,
     preSaleFromMenu: false,
     preSaleToMenu: false,
@@ -334,7 +336,6 @@ export default {
   }),
 
   mounted: function() {
-    console.log('AddProjectDialog Mounted', this.project, this.edit)
     this.clientList = this.clients.map((it) => {
       return {
         text: it.code,
@@ -350,7 +351,7 @@ export default {
     },
     projectNameRules() {
       return [
-        (v) => !!v || "Project name is required",
+        (v) => !!v || "Name is required",
         (v) =>
           (v && v.length <= this.maxNameLength) ||
           `Name must be less than ${this.Length} characters`,
@@ -358,10 +359,15 @@ export default {
     },
     projectCodeRules() {
       return [
-        (v) => !!v || "Project code is required",
+        (v) => !!v || "Code is required",
         (v) =>
           (v && v.length <= this.maxCodeLength) ||
           `Code must be less than ${this.Length} characters`,
+      ];
+    },
+    clientSelectRules() {
+      return [
+        (v) => !!v || "Client is required"
       ];
     },
   },
@@ -372,15 +378,13 @@ export default {
     },
 
     save: function() {
-      console.log('save-1')
-      //if (this.$refs.projectForm.validate()) { //TODO
-        console.log('save-2')
+      if (this.$refs.projectForm.validate()) {
         this.$emit('save', {
           project: Object.assign({}, this.project),
           edit: this.edit,
         })
         this.reset()
-      //}
+      }
     },
 
     close: function() {
