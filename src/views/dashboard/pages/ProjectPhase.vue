@@ -9,7 +9,7 @@
             <v-card-title>
                 <v-row>
                     <v-col class="pb-0" md="6">
-                        <p class="subtitle-1 mb-0">{{ `Phase ${this.phase.phaseNumber}` }}</p>
+                        <p class="subtitle-1 mb-0"><b>{{ `Phase ${this.phase.phaseNumber}` }}</b></p>
                         <p class="title mb-0 text--disabled">
                             {{ `${this.phase.phase_opendate} ~ ${this.phase.phase_closedate}` }}
                         </p>
@@ -17,7 +17,7 @@
                     <v-col class="pb-0" md="3">
                         <v-btn small @click="openTreeDialog()" color="teal">Add Task</v-btn>
                     </v-col>
-                    <v-col class="pb-0" md="3">
+                    <v-col class="pb-0 text-right" md="3">
                         <v-btn small @click="saveTask()" color="teal">Save Task</v-btn>
                     </v-col>
                 </v-row>
@@ -30,6 +30,7 @@
                         :items="phase.tree"
                         :search="searchName"
                         :filter="filterTreeItems"
+                        :open-all="true"
                         item-key="ikey"
                         activatable>
                         <template v-slot:prepend="{ item }">
@@ -56,7 +57,7 @@
                         </template>
                         <template v-slot:append="{ item }">
                             <v-icon v-if="item.level > 0"
-                                color="teal"
+                                color="orange"
                                 @click="openTaskEditDialog(item)"
                             >mdi-square-edit-outline</v-icon>
                         </template>
@@ -190,7 +191,6 @@
                         Cancel
                     </v-btn>
                     <v-btn
-                        :disabled="taskValid"
                         color="blue darken-1"
                         text
                         @click="saveTaskEditDialog"
@@ -561,7 +561,6 @@ export default {
         },
 
         onUnitOfMeasureChanged: function(event, item) {
-            console.log('~~~~~~~~~~~~~', event)
             item.unitOfMeasure = event
             if (item.state != 'newData') {
                 item.state = 'modified'
@@ -576,64 +575,62 @@ export default {
         },
 
         saveTask: async function(index) {
-            console.log('~~~~~~~~~~~~~', this.phase.tree)
-            return
-            // this.wait = true
+            this.wait = true
 
-            // const items = this.makeStageItems('NoFilter')
-            // for (const i in items) {
-            //     const item = items[i]
-            //     console.log('saveTask_add_item', item, item.state)
+            const items = this.makeStageItems('NoFilter')
+            for (const i in items) {
+                const item = items[i]
+                console.log('saveTask_add_item', item, item.state)
 
-            //     if (item.state === "newData" || item.state === "modified") {
-            //         const insertId = await api.addProjectCategory(this.phase.phase_id, item)
-            //         console.log('Save_Add_Category_Result', item, insertId)
+                if (item.state === "newData" || item.state === "modified") {
+                    const insertId = await api.addProjectCategory(this.phase.phase_id, item)
+                    console.log('Save_Add_Category_Result', item, insertId)
 
-            //         if (insertId) {
-            //             let serverItem = this.findServerItem(item)
-            //             if (!serverItem) {
-            //                 serverItem = this.getDefaultTask(0)
-            //                 serverItem.est_MP_categ_id = insertId
-            //                 serverItem.est_MP_categ_taskCategoryID = item.id
-            //                 this.addServerCategory(serverItem)
-            //                 console.log('Save_New_Server_Category', serverItem)
-            //             }
-            //             else {
-            //                 serverItem.est_MP_categ_id = insertId
-            //                 serverItem.est_MP_categ_taskCategoryID = item.id
-            //                 console.log('Save_Update_Server_Category', serverItem)
-            //             }
-            //         }
-            //     }
+                    if (insertId) {
+                        let serverItem = this.findServerItem(item)
+                        if (!serverItem) {
+                            serverItem = this.getDefaultTask(0)
+                            serverItem.est_MP_categ_id = insertId
+                            serverItem.est_MP_categ_taskCategoryID = item.id
+                            this.addServerCategory(serverItem)
+                            console.log('Save_New_Server_Category', serverItem)
+                        }
+                        else {
+                            serverItem.est_MP_categ_id = insertId
+                            serverItem.est_MP_categ_taskCategoryID = item.id
+                            console.log('Save_Update_Server_Category', serverItem)
+                        }
+                    }
+                }
 
-            //     const children = item.children
-            //     if (children && children.length > 0) {
-            //         await this.saveTaskByLevel(item, 'newData|modified', 1)
-            //     }
-            // }
+                const children = item.children
+                if (children && children.length > 0) {
+                    await this.saveTaskByLevel(item, 'newData|modified', 1)
+                }
+            }
 
-            // // Update removed items.
-            // /*for (const i in items) {
-            //     const item = items[i]
-            //     console.log('saveTask_remove_item', item, item.state)
+            // Update removed items.
+            /*for (const i in items) {
+                const item = items[i]
+                console.log('saveTask_remove_item', item, item.state)
 
-            //     const children = item.children
-            //     console.log('saveTask_remove_item_children', children)
-            //     if (children && children.length > 0) {
-            //         await this.saveTaskByLevel(item, 'remove', 1)
-            //     }
+                const children = item.children
+                console.log('saveTask_remove_item_children', children)
+                if (children && children.length > 0) {
+                    await this.saveTaskByLevel(item, 'remove', 1)
+                }
 
-            //     if (item.state == "removed") {
-            //         const result = await api.removeProjectCategory(this.phase.phase_id, item)
-            //         if (result) {
-            //             const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
-            //             updateItem.state = null
-            //         }
-            //     }
-            // }*/
+                if (item.state == "removed") {
+                    const result = await api.removeProjectCategory(this.phase.phase_id, item)
+                    if (result) {
+                        const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
+                        updateItem.state = null
+                    }
+                }
+            }*/
 
-            // this.resetStates(this.phase.tree)
-            // this.wait = false;
+            this.resetStates(this.phase.tree)
+            this.wait = false;
         },
 
         saveTaskByLevel: async function(tazk, state, level) {

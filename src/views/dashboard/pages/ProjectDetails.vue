@@ -5,7 +5,7 @@
         <v-col>
           Project Details 
         </v-col>
-        <v-col>
+        <v-col class="text-right">
           <v-btn small @click="addPhase" color="teal">Add Phase</v-btn>
         </v-col>
       </v-row>
