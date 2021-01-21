@@ -11,7 +11,7 @@
           <v-card-title class="flex flex-row-reverse px-0 mx-0">
             <v-btn small :disabled="wait" v-on:click="project_addButtonClicked" color="primary">New Project</v-btn>
           </v-card-title>
-          <v-list>
+          <v-list :disabled="wait">
             <v-list-item-group>
               <v-list-item v-for="(item, i) in projects" :key="i">
                 <v-list-item-content v-on:click="project_listItemClicked(item)">

@@ -376,11 +376,11 @@ const saveTask1 = async function(tazk, state) {
             "action": child.state,
             "est_MP_TL1_id": child.info.est_MP_TL1_id,
             "est_MP_TL1_level1taskid": child.info.est_MP_TL1_level1taskid,
-            "est_MP_TL1_level1taskDesc": child.info.est_MP_TL1_level1taskDesc,
+            "est_MP_TL1_level1taskDesc": child.description, //info.est_MP_TL1_level1taskDesc,
             "est_MP_TL1_datefrom": child.info.est_MP_TL1_datefrom,
             "est_MP_TL1_dateto": child.info.est_MP_TL1_dateto,  
-            "est_MP_TL1_unitOfMeasure": child.info.est_MP_TL1_unitOfMeasure,
-            "est_MP_TL1_qty": child.info.est_MP_TL1_qty
+            "est_MP_TL1_unitOfMeasure": child.unitOfMeasure, //child.info.est_MP_TL1_unitOfMeasure,
+            "est_MP_TL1_qty": child.quantity, //child.info.est_MP_TL1_qty
         }
     })
     const postData = data.filter(it => it != null)
@@ -422,9 +422,9 @@ const saveTask2 = async function(tazk, state) {
             "action": child.state,
             "est_MP_TL2_id": child.info.est_MP_TL2_id,
             "est_MP_TL2_level2taskid": child.info.est_MP_TL2_level2taskid,
-            "est_MP_TL2_level2taskDesc": child.info.est_MP_TL2_level2taskDesc,
-            "est_MP_TL2_unitOfMeasure": child.info.est_MP_TL2_unitOfMeasure,
-            "est_MP_TL2_qty": child.info.est_MP_TL2_qty
+            "est_MP_TL2_level2taskDesc": child.description, //child.info.est_MP_TL2_level2taskDesc,
+            "est_MP_TL2_unitOfMeasure": child.unitOfMeasure, //child.info.est_MP_TL2_unitOfMeasure,
+            "est_MP_TL2_qty": child.quantity, //child.info.est_MP_TL2_qty
         }
     })
     const postData = data.filter(it => it != null)
@@ -466,9 +466,9 @@ const saveTask3 = async function(tazk, state) {
             "action": child.state,
             "est_MP_TL3_id": child.info.est_MP_TL3_id,
             "est_MP_TL3_level3taskid": child.info.est_MP_TL3_level3taskid,
-            "est_MP_TL3_level3taskDesc": child.info.est_MP_TL3_level3taskDesc,
-            "est_MP_TL3_unitOfMeasure": child.info.est_MP_TL3_unitOfMeasure,
-            "est_MP_TL3_qty": child.info.est_MP_TL3_qty
+            "est_MP_TL3_level3taskDesc": child.description, //child.info.est_MP_TL3_level3taskDesc,
+            "est_MP_TL3_unitOfMeasure": child.unitOfMeasure, //child.info.est_MP_TL3_unitOfMeasure,
+            "est_MP_TL3_qty": child.quantity, //child.info.est_MP_TL3_qty
         }
     })
     const postData = data.filter(it => it != null)
@@ -510,9 +510,9 @@ const saveTask4 = async function(tazk, state) {
             "action": child.state,
             "est_MP_TL4_id": child.info.est_MP_TL4_id,
             "est_MP_TL4_level4taskid": child.info.est_MP_TL4_level4taskid,
-            "est_MP_TL4_level4taskDesc": child.info.est_MP_TL4_level4taskDesc,
-            "est_MP_TL4_unitOfMeasure": child.info.est_MP_TL4_unitOfMeasure,
-            "est_MP_TL4_qty": child.info.est_MP_TL4_qty
+            "est_MP_TL4_level4taskDesc": child.description, //child.info.est_MP_TL4_level4taskDesc,
+            "est_MP_TL4_unitOfMeasure": child.unitOfMeasure, //child.info.est_MP_TL4_unitOfMeasure,
+            "est_MP_TL4_qty": child.quantity, //child.info.est_MP_TL4_qty
         }
     })
     const postData = data.filter(it => it != null)

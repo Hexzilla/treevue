@@ -25,7 +25,9 @@
                 <v-col>
                     <v-treeview
                         :open="initiallyOpen"
-                        :items="phase.stageItems"
+                        :items="phase.tree"
+                        :search="searchName"
+                        :filter="filterTreeItems"
                         item-key="ikey"
                         activatable>
                         <template v-slot:prepend="{ item }">
@@ -37,28 +39,26 @@
                         </template>
                         <template v-slot:append="{ item }">
                             <v-row>
-                                <v-col style="flex:2;padding:0 5px;" v-if="item.level == 1">
+                                <!-- <v-col style="flex:2;padding:0 5px;" v-if="item.level == 1">
                                     <v-text-field
                                         readonly
                                         style="font-size:12px"
                                         :value="item.info.est_MP_TL1_datefrom + ' ~ ' + item.info.est_MP_TL1_dateto"
                                     ></v-text-field>
-                                </v-col>
-                                <v-col style="width:200px;padding:0 5px;">
+                                </v-col> -->
+                                <v-col cols="12" sm="12" md="9" style="padding: 0 5px;">
                                     <v-text-field
                                         v-if="item.level > 0"
-                                        @change="descriptionChange($event, item)"
                                         label="Description"
-                                        :value="getDescription(item)"
+                                        v-model="item.description"
                                     ></v-text-field>
                                 </v-col>
-                                <v-col style="width: 10px;padding:0 5px;">
+                                <v-col cols="12" sm="12" md="3" style="padding: 0 15px;">
                                     <v-text-field
                                         v-if="item.level > 0"
                                         type="number"
-                                        label="Qty"
-                                        @change="qtyChange($event, item)"
-                                        :value="item.info.est_MP_TL1_qty"
+                                        label="Quantity"
+                                        v-model="item.Quantity"
                                     ></v-text-field>
                                 </v-col>
                             </v-row>
@@ -200,8 +200,9 @@
 </template>
 
 <script>
-import api from "@/apis/project.js";
-import apiTasks from "@/apis/task.js";
+import moment from 'moment'
+import api from "@/apis/project.js"
+import apiTasks from "@/apis/task.js"
 
 export default {
     name: "ProjectPhase",
@@ -219,10 +220,13 @@ export default {
         taskToMenu: false,
         taskDialog: false,
         selectedTree: null,
-        ownKeys: []
+        searchName: "1",
     }),
 
     computed: {
+        filterTreeItems() {
+            return (item, search, textKey) => (item.state && item.state != 'remove')
+        },
         taskValid() {
             if (this.taskFromDate && this.taskToDate) return false;
             return true;
@@ -243,35 +247,35 @@ export default {
             return `Phase ${this.phase.phaseNumber} (${this.phase.phase_opendate} ~ ${this.phase.phase_closedate})`
         },
 
-        getDescription(item) {
-            if (item.level == 1) {
-                return item.info.est_MP_TL1_level1taskDesc
-            }
-            else if (item.level == 2) {
-                return item.info.est_MP_TL2_level2taskDesc
-            }
-            else if (item.level == 3) {
-                return item.info.est_MP_TL3_level3taskDesc
-            }
-            else if (item.level == 4) {
-                return item.info.est_MP_TL4_level4taskDesc
-            }
-        },
+        // getDescription(item) {
+        //     if (item.level == 1) {
+        //         return item.info.est_MP_TL1_level1taskDesc
+        //     }
+        //     else if (item.level == 2) {
+        //         return item.info.est_MP_TL2_level2taskDesc
+        //     }
+        //     else if (item.level == 3) {
+        //         return item.info.est_MP_TL3_level3taskDesc
+        //     }
+        //     else if (item.level == 4) {
+        //         return item.info.est_MP_TL4_level4taskDesc
+        //     }
+        // },
 
         initialize() {
             if (!this.phase.serverItems) {
                 this.phase.serverItems = []
             }
 
-            //TOOD---console.log('initialize_phase:', this.phase)
-            //TOOD---console.log('initialize_phase_serverItems:', this.phase.serverItems)
+            console.log('initialize_phase:', this.phase)
+            console.log('initialize_phase_serverItems:', this.phase.serverItems)
             
             this.phase.tree = this.cloneTaskTree(this.treeItems)
             this.phase.tree = this.setDefaultValues(this.phase.tree)
-            //TOOD---console.log('initialize_phase_tree:', this.phase.tree)
+            console.log('initialize_phase_tree:', this.phase.tree)
 
-            this.phase.stageItems = this.makeStageItems('removed')
-            //TOOD---console.log('stageItems:', this.phase.stageItems)
+            //this.phase.stageItems = this.makeStageItems('remove')
+            //console.log('stageItems:', this.phase.stageItems)
         },
 
         //----------------------mangae task list -------------------------------------
@@ -283,6 +287,9 @@ export default {
                     name: item.name, 
                     ikey: item.ikey,
                     level: item.level,
+                    description: '',
+                    unitOfMeasure: 'Nos',
+                    quantity: 0,
                     children: [] 
                 }
                 const serverItem = this.findServerItem(item)
@@ -312,8 +319,8 @@ export default {
                     est_MP_TL1_id: 0,
                     est_MP_TL1_level1taskid: 0,
                     est_MP_TL1_level1taskDesc: '',
-                    est_MP_TL1_datefrom: '2021-01-01',
-                    est_MP_TL1_dateto: '2021-01-01',
+                    est_MP_TL1_datefrom: moment().format("YYYY-MM-DD"),
+                    est_MP_TL1_dateto: moment().add(10, 'days').format("YYYY-MM-DD"),
                     est_MP_TL1_unitOfMeasure: 'Nos',
                     est_MP_TL1_qty: 0
                 }
@@ -398,22 +405,34 @@ export default {
         //----------------------mangae task list -------------------------------------
 
         //----------------------phase.tree state -------------------------------------
-        updateTreeState: function(tasks, keyList) {
+        getInterestedTasks: function() {
+            return this.phase.tree.filter(it => it.state && it.state != 'remove')
+        },
+
+        updateInterestedTasks: function(tasks, keyList) {
             for (const i in tasks) {
                 const item = tasks[i]
 
-                if (!this.existsInKeyList(item, keyList)) {
-                    if (item.state) {
-                        //TOOD---console.log('updateTreeState2----removed', item.ikey, item.state, item.name)
-                        item.state = "removed"
+                if (this.existsInKeyList(item, keyList)) {
+                    //console.log('test~~~~~~~~~~~~~~1:', item.ikey, item.state, item.level, item)
+                    if (!item.state) {
+                        item.state = "newData"
+                    }
+                    else if (item.state == "remove") {
+                        item.state = "modified"
+                    }
+                    //console.log('test~~~~~~~~~~~~~~2:', item.ikey, item.state, item.level, item)
+                }
+                else {
+                    if (item.state && item.state == 'newData') {
+                        item.state = undefined;
+                    }
+                    else if (item.state) {
+                        item.state = "remove"
                     }
                 }
-                else if (!item.state) {
-                    //TOOD---console.log('updateTreeState2----newData', item.ikey, item.state, item.name)
-                    item.state = "newData"
-                }
                 if (item.children && item.children.length > 0) {
-                    this.updateTreeState(item.children, keyList)
+                    this.updateInterestedTasks(item.children, keyList)
                 }
             }
         },
@@ -434,7 +453,7 @@ export default {
         //----------------------phase.tree state -------------------------------------
 
         //----------------------manage sync data -------------------------------------
-        makeStageItems: function(filter = 'removed') {
+        makeStageItems: function(filter = 'remove') {
             return this.getStageItems(this.phase.tree, filter)
         },
 
@@ -508,13 +527,9 @@ export default {
 
         openTaskDialog: function() {
             this.treeDialog = true;
-            //TOOD---console.log('open_dialog_tree_items', this.phase.stageItems)
 
-            const keys = this.getKeyList(this.phase.stageItems);
-            //TOOD---console.log('open_dialog_keys', keys)
-            
-            this.dialogTreeSelected = keys;
-            this.ownKeys = keys;
+            const selectedTasks = this.getInterestedTasks()
+            this.dialogTreeSelected = this.getKeyList(selectedTasks);
         },
 
         closeTreeDialog: function() {
@@ -523,21 +538,21 @@ export default {
         
         saveTree: function() {
             this.treeDialog = false
+            console.log('saveTree.selected:', this.dialogTreeSelected);
+            this.updateInterestedTasks(this.phase.tree, this.dialogTreeSelected)
+            this.refreshTree()
+        },
 
-            //TOOD---console.log('saveTree.selected:', this.dialogTreeSelected);
-            this.updateTreeState(this.phase.tree, this.dialogTreeSelected)
-
-            //TOOD---console.log('saveTree.this.phase.tree:', this.phase.tree);
-
-            this.phase.stageItems = this.makeStageItems('removed')
-            //TOOD---console.log('saveTree.stageItems:', this.phase.stageItems)
+        refreshTree: function() {
+            this.searchName = (parseInt(this.searchName) + 1).toString()
         },
 
         openTaskDateDialog: function(item) {
-            this.taskFromDate = "";
-            this.taskToDate = "";
-            this.taskDialog = true;
-            this.selectedTree = item;
+            console.log('open_task_date_dialog', item)
+            this.taskFromDate = item.info.est_MP_TL1_datefrom
+            this.taskToDate = item.info.est_MP_TL1_dateto
+            this.taskDialog = true
+            this.selectedTree = item
         },
 
         closeTaskDateDialog: function() {
@@ -550,9 +565,9 @@ export default {
             this.taskDialog = false;
         },
 
-        descriptionChange: function(event, item) {
-            item.description = event;
-        },
+        // descriptionChange: function(event, item) {
+        //     item.description = event;
+        // },
 
         qtyChange: function(event, item) {
             item.qty = event;
@@ -576,67 +591,70 @@ export default {
         // },
 
         saveTask: async function(index) {
-            this.wait = true;
+            console.log('------------', this.phase.tree)
+            return
 
-            const items = this.makeStageItems('NoFilter')
-            for (const i in items) {
-                const item = items[i]
-                //TOOD---console.log('saveTask_add_item', item, item.state)
+            // this.wait = true
 
-                if (item.state === "newData" || item.state === "modified") {
-                    const insertId = await api.addProjectCategory(this.phase.phase_id, item)
-                    //TOOD---console.log('Save_Add_Category_Result', item, insertId)
+            // const items = this.makeStageItems('NoFilter')
+            // for (const i in items) {
+            //     const item = items[i]
+            //     console.log('saveTask_add_item', item, item.state)
 
-                    if (insertId) {
-                        let serverItem = this.findServerItem(item)
-                        if (!serverItem) {
-                            serverItem = this.getDefaultTask(0)
-                            serverItem.est_MP_categ_id = insertId
-                            serverItem.est_MP_categ_taskCategoryID = item.id
-                            this.addServerCategory(serverItem)
-                            //TOOD---console.log('Save_New_Server_Category', serverItem)
-                        }
-                        else {
-                            serverItem.est_MP_categ_id = insertId
-                            serverItem.est_MP_categ_taskCategoryID = item.id
-                            //TOOD---console.log('Save_Update_Server_Category', serverItem)
-                        }
-                    }
-                }
+            //     if (item.state === "newData" || item.state === "modified") {
+            //         const insertId = await api.addProjectCategory(this.phase.phase_id, item)
+            //         console.log('Save_Add_Category_Result', item, insertId)
 
-                const children = item.children
-                if (children && children.length > 0) {
-                    await this.saveTaskByLevel(item, 'newData|modified', 1)
-                }
-            }
+            //         if (insertId) {
+            //             let serverItem = this.findServerItem(item)
+            //             if (!serverItem) {
+            //                 serverItem = this.getDefaultTask(0)
+            //                 serverItem.est_MP_categ_id = insertId
+            //                 serverItem.est_MP_categ_taskCategoryID = item.id
+            //                 this.addServerCategory(serverItem)
+            //                 console.log('Save_New_Server_Category', serverItem)
+            //             }
+            //             else {
+            //                 serverItem.est_MP_categ_id = insertId
+            //                 serverItem.est_MP_categ_taskCategoryID = item.id
+            //                 console.log('Save_Update_Server_Category', serverItem)
+            //             }
+            //         }
+            //     }
 
-            // Update removed items.
-            /*for (const i in items) {
-                const item = items[i]
-                //TOOD---console.log('saveTask_remove_item', item, item.state)
+            //     const children = item.children
+            //     if (children && children.length > 0) {
+            //         await this.saveTaskByLevel(item, 'newData|modified', 1)
+            //     }
+            // }
 
-                const children = item.children
-                //TOOD---console.log('saveTask_remove_item_children', children)
-                if (children && children.length > 0) {
-                    await this.saveTaskByLevel(item, 'removed', 1)
-                }
+            // // Update removed items.
+            // /*for (const i in items) {
+            //     const item = items[i]
+            //     console.log('saveTask_remove_item', item, item.state)
 
-                if (item.state == "removed") {
-                    const result = await api.removeProjectCategory(this.phase.phase_id, item)
-                    if (result) {
-                        const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
-                        updateItem.state = null
-                    }
-                }
-            }*/
+            //     const children = item.children
+            //     console.log('saveTask_remove_item_children', children)
+            //     if (children && children.length > 0) {
+            //         await this.saveTaskByLevel(item, 'remove', 1)
+            //     }
 
-            this.resetStates(this.phase.tree)
-            this.wait = false;
+            //     if (item.state == "removed") {
+            //         const result = await api.removeProjectCategory(this.phase.phase_id, item)
+            //         if (result) {
+            //             const updateItem = this.findTaskByKey(this.phase.tree, item.ikey)
+            //             updateItem.state = null
+            //         }
+            //     }
+            // }*/
+
+            // this.resetStates(this.phase.tree)
+            // this.wait = false;
         },
 
         saveTaskByLevel: async function(tazk, state, level) {
             const pInfo = this.findServerItem(tazk)
-            //TOOD---console.log('saveTaskByLevel________info', this.phase.serverItems, tazk, pInfo)
+            console.log('saveTaskByLevel________info', this.phase.serverItems, tazk, pInfo)
             if (pInfo) {
                 tazk.info = pInfo
             }
@@ -646,12 +664,12 @@ export default {
 
             const insertId = await api.saveTaskByLevel(tazk, state, tazk.level)
             if (insertId) {
-                //TOOD---console.log('saveTaskByLevel________inserted', insertId, tazk)
+                console.log('saveTaskByLevel________inserted', insertId, tazk)
                 const children = await api.getTaskByKeyInfo(tazk, tazk.level)
                 if (children) {
                     const projItem = this.findServerItem(tazk)
                     projItem.children = children
-                    //TOOD---console.log('saveTaskByLevel________serverItems', this.phase.serverItems)
+                    console.log('saveTaskByLevel________serverItems', this.phase.serverItems)
                 }
             }
 
@@ -662,8 +680,8 @@ export default {
                 }
             }
 
-            // if (state === 'removed') {
-            //     //TOOD---console.log('saveTaskByLevel________call_root', tazk.ikey, state, tazk.level)
+            // if (state === 'remove') {
+            //     console.log('saveTaskByLevel________call_root', tazk.ikey, state, tazk.level)
             //     await api.saveTaskByLevel(tazk, state, tazk.level)
             // }
         }
