@@ -252,12 +252,14 @@ export default {
     },
 
     project_addButtonClicked: function() {
+      console.log('project_addButtonClicked')
       this.editProject = false
       this.sampleProject = this.project_sample()
       this.addDialog = true
     },
 
     project_editButtonClicked: function(project) {
+      console.log('project_editButtonClicked')
       this.selectedProject = project
       this.sampleProject = project
       this.editProject = true
@@ -266,8 +268,8 @@ export default {
 
     project_dialogSaveButtonClicked: function(params) {
       this.addDialog = false
-      if (params.selected) { //edit project
-        this.project_edit(params.selected, params.project)
+      if (params.edit) { //edit project
+        this.project_edit(this.selectedProject, params.project)
       }
       else {
         this.project_add(params.project)
@@ -275,7 +277,6 @@ export default {
     },
 
     project_add: async function(project) {
-      console.log('project_add', project)
       this.wait = true
 
       const result = await api.addProject(project)
@@ -285,13 +286,11 @@ export default {
             this.projects.push(updated[0])
           }
       }
-      console.log('project_add', this.projects)
       this.project_reset()
       this.wait = false
     },
 
     project_edit: async function(selected, updated) {
-      console.log('project_edit', selected, updated)
       this.wait = true
 
       const project = Object.assign(selected, updated)
